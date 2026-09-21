@@ -1,0 +1,25 @@
+# Root config so the base directory lives in the repo, not in the Netlify UI.
+# Without this, Netlify publishes the repo root, finds no functions, and the
+# tool's own netlify.toml (one level down) is never read.
+#
+# Paths below are relative to `base`.
+#
+# Note for when a second tool lands here: `base` is per-repo, so a second
+# Netlify site pointing at another folder would need its base set in the UI
+# (Site configuration -> Build & deploy -> Build settings), or this repo split.
+
+[build]
+  base = "systems-starter-kit"
+  publish = "."
+  command = "npm install"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"

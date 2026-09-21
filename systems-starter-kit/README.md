@@ -29,9 +29,7 @@ replayed or invented id does no work and spends no API credits.
 ## Deploy — Mandy's clicks, about 20 minutes
 
 1. **Create the Netlify site** from this repo (`AmandaGraceDesign/agd-web-tools`).
-   In *Site configuration → Build & deploy → Build settings*, set
-   **Base directory** to `systems-starter-kit`. That makes Netlify read the
-   `netlify.toml` in this folder; publish directory and functions path come from it.
+   Nothing to configure — the root `netlify.toml` sets the base directory.
 
 2. **Add the environment variables** in *Site configuration → Environment variables*:
 
