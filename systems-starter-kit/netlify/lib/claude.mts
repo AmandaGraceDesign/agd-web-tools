@@ -133,6 +133,13 @@ function buildUserMessage(intake: Intake): string {
   return lines.join("\n");
 }
 
+/** The fallback path asks for bare JSON, but a model may still fence it. */
+function stripFence(text: string): string {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*\n([\s\S]*?)\n```$/);
+  return fenced ? fenced[1] : trimmed;
+}
+
 export async function generate(intake: Intake): Promise<Generated> {
   const apiKey = Netlify.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
@@ -143,16 +150,45 @@ export async function generate(intake: Intake): Promise<Generated> {
   const model = Netlify.env.get("CLAUDE_MODEL") || DEFAULT_MODEL;
   const effort = Netlify.env.get("CLAUDE_EFFORT") || DEFAULT_EFFORT;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 16000,
-    system: SYSTEM,
-    output_config: {
-      effort,
-      format: { type: "json_schema", schema: OUTPUT_SCHEMA },
-    },
-    messages: [{ role: "user", content: buildUserMessage(intake) }],
-  } as Anthropic.MessageCreateParamsNonStreaming);
+  const messages = [{ role: "user" as const, content: buildUserMessage(intake) }];
+
+  // Preferred path: the API constrains the response to the schema.
+  //
+  // Fallback path: if the account, model, or API version rejects the
+  // structured-output request, ask for the same JSON in the prompt and parse
+  // it. The fallback is strictly less reliable, so it is only ever a rescue -
+  // and `via` records which path ran so a silent downgrade is still visible.
+  let response: Anthropic.Message;
+  let via = "structured";
+
+  try {
+    response = await client.messages.create({
+      model,
+      max_tokens: 16000,
+      system: SYSTEM,
+      output_config: {
+        effort,
+        format: { type: "json_schema", schema: OUTPUT_SCHEMA },
+      },
+      messages,
+    } as Anthropic.MessageCreateParamsNonStreaming);
+  } catch (err) {
+    const why = err instanceof Error ? err.message : String(err);
+    console.warn("structured output rejected, retrying as plain JSON:", why);
+    via = "plain-json";
+
+    response = await client.messages.create({
+      model,
+      max_tokens: 16000,
+      system: `${SYSTEM}
+
+OUTPUT FORMAT
+Reply with a single JSON object and nothing else - no prose before or after it,
+no markdown code fences. It must match this shape exactly:
+${JSON.stringify(OUTPUT_SCHEMA)}`,
+      messages,
+    } as Anthropic.MessageCreateParamsNonStreaming);
+  }
 
   if (response.stop_reason === "refusal") {
     throw new Error("The model declined this request.");
@@ -169,9 +205,9 @@ export async function generate(intake: Intake): Promise<Generated> {
 
   let parsed: Generated;
   try {
-    parsed = JSON.parse(text) as Generated;
+    parsed = JSON.parse(stripFence(text)) as Generated;
   } catch {
-    throw new Error("The model returned something that was not valid JSON.");
+    throw new Error(`Model returned invalid JSON via ${via}: ${text.slice(0, 200)}`);
   }
 
   if (!Array.isArray(parsed.prompts) || parsed.prompts.length === 0) {
