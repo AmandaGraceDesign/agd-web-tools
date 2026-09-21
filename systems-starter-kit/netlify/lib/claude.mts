@@ -14,6 +14,8 @@ export interface GeneratedPrompt {
 export interface Generated {
   summary: string;
   prompts: GeneratedPrompt[];
+  /** Which request shape produced this: "structured" or "plain-json". */
+  via?: string;
 }
 
 const OUTPUT_SCHEMA = {
@@ -26,8 +28,9 @@ const OUTPUT_SCHEMA = {
     },
     prompts: {
       type: "array",
-      minItems: 10,
-      maxItems: 10,
+      // Deliberately no minItems/maxItems: they are the least portable
+      // keywords in a structured-output schema. The count is enforced by the
+      // prompt and checked after parsing instead.
       items: {
         type: "object",
         properties: {
@@ -194,6 +197,12 @@ ${JSON.stringify(OUTPUT_SCHEMA)}`,
     throw new Error("The model declined this request.");
   }
 
+  if (response.stop_reason === "max_tokens") {
+    throw new Error(
+      `Response hit max_tokens via ${via} - raise it or lower CLAUDE_EFFORT.`,
+    );
+  }
+
   const text = response.content
     .filter((block): block is Anthropic.TextBlock => block.type === "text")
     .map((block) => block.text)
@@ -214,5 +223,5 @@ ${JSON.stringify(OUTPUT_SCHEMA)}`,
     throw new Error("The model returned no prompts.");
   }
 
-  return parsed;
+  return { ...parsed, via };
 }
