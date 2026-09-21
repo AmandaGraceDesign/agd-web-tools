@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ten AI Prompts For Your Actual Business — Creative Systems Lab</title>
+<meta name="description" content="Tell me what you really make and sell. Get ten Claude prompts written for your business — not a generic list.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="Ten AI Prompts For Your Actual Business">
+<meta property="og:description" content="Not a PDF of generic prompts. Ten prompts written around your business, your bottleneck, your next 30 days.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --gold:#eeac55; --navy:#204568; --blush:#f7ede6; --coral:#e85c66;
+    --ink:#1b2c3d; --muted:#5c6f80; --line:#e3d6cc; --card:#fffdfb;
+    --radius:14px;
+    --sans:"Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--blush);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+  header{background:var(--navy);color:#fff;padding:14px 0}
+  header .wrap{display:flex;align-items:center;gap:10px;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+  header .dot{width:9px;height:9px;border-radius:50%;background:var(--gold)}
+  h1{font-size:clamp(30px,5.5vw,44px);line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
+  h2{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+  .lede{font-size:19px;color:var(--muted);margin:0 0 22px}
+  .hero{padding:44px 0 8px}
+  .clarify{background:#fff;border-left:4px solid var(--gold);padding:14px 16px;border-radius:0 10px 10px 0;font-size:15.5px;margin:0 0 26px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin:0 0 22px}
+  label{display:block;font-weight:600;margin:0 0 4px;font-size:15.5px}
+  .hint{color:var(--muted);font-size:14px;margin:0 0 8px}
+  input[type=text],input[type=email],textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+    font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+  textarea{min-height:88px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+  .field{margin:0 0 20px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{position:relative}
+  .chip input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;left:0;top:0}
+  .chip span{display:block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:15px;cursor:pointer}
+  .chip input:checked + span{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .chip input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
+  button{
+    font:inherit;font-weight:700;font-size:17px;border:0;border-radius:999px;
+    padding:14px 30px;cursor:pointer;background:var(--coral);color:#fff}
+  button:hover:not(:disabled){filter:brightness(1.06)}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--navy);border:1px solid var(--line);font-weight:600;font-size:15px;padding:9px 18px}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .err{background:#fdeaec;border:1px solid var(--coral);color:#8a2731;padding:12px 14px;border-radius:10px;margin:0 0 16px;font-size:15.5px}
+  .prompt{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin:0 0 16px}
+  .prompt .num{display:inline-block;background:var(--gold);color:var(--navy);font-weight:700;font-size:13px;
+    padding:3px 10px;border-radius:999px;margin:0 0 8px;letter-spacing:.04em}
+  .prompt h3{margin:0 0 6px;font-size:19px;letter-spacing:-.01em}
+  .why{color:var(--muted);font-size:15.5px;margin:0 0 14px}
+  pre{background:#fbf6f1;border:1px solid var(--line);border-radius:10px;padding:15px;
+    white-space:pre-wrap;word-wrap:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:14.5px;line-height:1.55;margin:0 0 10px;color:var(--ink)}
+  .tip{font-size:14.5px;color:var(--muted);margin:10px 0 0;padding-left:10px;border-left:2px solid var(--gold)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .loading{text-align:center;padding:50px 20px}
+  .loading p{color:var(--muted)}
+  .cta{background:var(--navy);color:#fff;border-radius:var(--radius);padding:28px;margin:26px 0}
+  .cta h2{color:#fff}
+  .cta p{color:#cfdcea;margin:0 0 16px}
+  .cta a{display:inline-block;background:var(--gold);color:var(--navy);font-weight:700;
+    text-decoration:none;padding:13px 26px;border-radius:999px}
+  footer{color:var(--muted);font-size:14px;padding:30px 0 50px;text-align:center}
+  footer a{color:var(--navy)}
+  .hidden{display:none}
+  @media (max-width:520px){ .card,.prompt{padding:18px} body{font-size:16px} }
+</style>
+</head>
+<body>
+
+<header><div class="wrap"><span class="dot"></span><span>Creative Systems Lab</span></div></header>
+
+<main class="wrap">
+
+  <!-- STEP 1 -->
+  <section id="step-intake">
+    <div class="hero">
+      <h1>Ten AI prompts, written for your business.</h1>
+      <p class="lede">Not a PDF of generic prompts you'll skim once and forget. Tell me what you actually make, who buys it, and what's eating your week — and I'll write ten Claude prompts around <em>that</em>.</p>
+      <div class="clarify"><strong>To be clear:</strong> this is not about generating art with AI. This is about using AI to run the business around your art.</div>
+    </div>
+
+    <form id="intake" class="card" novalidate>
+      <div class="field">
+        <label for="business">What do you make and sell?</label>
+        <p class="hint">Plain language. "Surface patterns I license to fabric companies" beats "creative solutions."</p>
+        <textarea id="business" name="business" maxlength="600" required placeholder="I design surface patterns and license them to fabric and stationery brands. I also sell digital papers on Etsy."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="audience">Who buys from you?</label>
+        <textarea id="audience" name="audience" maxlength="400" placeholder="Art directors at mid-size home goods brands, plus crafters who buy my digital papers for Cricut projects."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Where do you sell or show up?</label>
+        <p class="hint">Pick all that apply.</p>
+        <div class="chips" id="channels">
+          <label class="chip"><input type="checkbox" value="Etsy"><span>Etsy</span></label>
+          <label class="chip"><input type="checkbox" value="Shopify"><span>Shopify</span></label>
+          <label class="chip"><input type="checkbox" value="Spoonflower"><span>Spoonflower</span></label>
+          <label class="chip"><input type="checkbox" value="Print on demand"><span>Print on demand</span></label>
+          <label class="chip"><input type="checkbox" value="Licensing / wholesale"><span>Licensing / wholesale</span></label>
+          <label class="chip"><input type="checkbox" value="Instagram"><span>Instagram</span></label>
+          <label class="chip"><input type="checkbox" value="Pinterest"><span>Pinterest</span></label>
+          <label class="chip"><input type="checkbox" value="Email list"><span>Email list</span></label>
+          <label class="chip"><input type="checkbox" value="Courses or teaching"><span>Courses / teaching</span></label>
+          <label class="chip"><input type="checkbox" value="In person markets"><span>In-person markets</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Where are you right now?</label>
+        <div class="chips" id="stage">
+          <label class="chip"><input type="radio" name="stage" value="Just starting — shop is new or not open yet"><span>Just starting</span></label>
+          <label class="chip"><input type="radio" name="stage" value="Selling some — inconsistent income"><span>Selling some</span></label>
+          <label class="chip"><input type="radio" name="stage" value="Steady business — reliable income, manual systems"><span>Steady business</span></label>
+          <label class="chip"><input type="radio" name="stage" value="Multiple income streams that don't connect"><span>Multiple streams</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="timesink">What eats the most time every week?</label>
+        <p class="hint">The task you dread. Be specific — this one shapes half your prompts.</p>
+        <textarea id="timesink" name="timesink" maxlength="600" required placeholder="Writing product listings. Every new pattern needs a title, description, and tags and I stall out for an hour on each one."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="next30">What's on your plate in the next 30 days?</label>
+        <p class="hint">Optional. A launch, a market, a collection, a deadline.</p>
+        <textarea id="next30" name="next30" maxlength="400" placeholder="Launching a 12-pattern holiday collection and I want an email sequence to go with it."></textarea>
+      </div>
+
+      <div class="hp"><label>Leave this empty<input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+      <div id="intake-err" class="err hidden" role="alert"></div>
+      <button type="submit">Build my ten prompts</button>
+    </form>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="step-email" class="hidden">
+    <div class="hero">
+      <h1>Where should I send them?</h1>
+      <p class="lede">Your prompts land on the next screen — no waiting on an email. I'll send a copy too, so they're not lost the second you close this tab.</p>
+    </div>
+    <form id="gate" class="card" novalidate>
+      <div class="field">
+        <label for="first_name">First name</label>
+        <input type="text" id="first_name" name="first_name" maxlength="60" autocomplete="given-name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" maxlength="160" autocomplete="email" required>
+        <p class="hint" style="margin-top:8px">You're joining the Creative Systems Lab list. Unsubscribe any time, no hard feelings.</p>
+      </div>
+      <div id="gate-err" class="err hidden" role="alert"></div>
+      <div class="row">
+        <button type="submit" id="gate-btn">Show me my prompts</button>
+        <button type="button" class="ghost" id="back-btn">Back</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="step-loading" class="hidden">
+    <div class="loading">
+      <h2><span class="spin"></span>Writing your ten prompts</h2>
+      <p id="loading-msg">Reading what you told me about your business…</p>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section id="step-results" class="hidden">
+    <div class="hero">
+      <h1 id="results-title">Your ten prompts.</h1>
+      <p class="lede" id="results-lede"></p>
+      <div class="row" style="margin-bottom:26px">
+        <button type="button" class="ghost" id="copy-all">Copy all ten</button>
+        <button type="button" class="ghost" id="download">Download as text file</button>
+        <button type="button" class="ghost" id="restart">Start over</button>
+      </div>
+    </div>
+    <div id="prompts"></div>
+    <div class="cta">
+      <h2>Want to build the system, not just run the prompt?</h2>
+      <p>Creative Systems Lab is a monthly 90-minute live build. You walk away with something built — not just something learned. Sessions 1 and 2 are free.</p>
+      <a href="https://creativesystemslab.com" id="cta-link">See the next session</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p>Built by <a href="https://amandagracedesign.com">Amanda Grace Design</a> · Creative Systems Lab</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+import type { Context } from "@netlify/functions";
+import { jobStore, type JobRecord } from "../lib/store.mts";
+import { generate } from "../lib/claude.mts";
+import { subscribe } from "../lib/kit.mts";
+import type { Intake } from "../lib/validate.mts";
+
+type StoredJob = JobRecord & { intake?: Intake };
+
+/**
+ * Long-running half of the flow: subscribe the visitor to Kit, then generate.
+ *
+ * This endpoint is publicly reachable, so it takes only a job id - never the
+ * intake itself. The id is an unguessable UUID, and a job is only processed
+ * while it is still "pending", so a replayed or invented id does no work and
+ * costs no API credits.
+ */
+export default async (req: Request, _context: Context) => {
+  let jobId = "";
+  try {
+    const body = (await req.json()) as { job_id?: unknown };
+    jobId = typeof body.job_id === "string" ? body.job_id : "";
+  } catch {
+    return;
+  }
+  if (!jobId) return;
+
+  const store = jobStore();
+  const job = (await store.get(jobId, { type: "json" })) as StoredJob | null;
+
+  if (!job || job.status !== "pending" || !job.intake) {
+    console.warn("ignoring job that is not pending", jobId);
+    return;
+  }
+
+  const intake = job.intake;
+
+  // Claim the job so a duplicate delivery cannot generate twice.
+  await store.setJSON(jobId, { ...job, status: "running" as JobRecord["status"] });
+
+  // The email is the price of the tool, so capture it before generating - but
+  // never let a Kit failure cost the visitor the prompts they filled a form for.
+  const kit = await subscribe(intake);
+  if (!kit.ok) {
+    console.error("kit subscribe failed", jobId, kit.status ?? "", kit.detail ?? "");
+  }
+
+  try {
+    const result = await generate(intake);
+    await store.setJSON(jobId, {
+      status: "done",
+      created_at: job.created_at,
+      first_name: intake.firstName,
+      kit_ok: kit.ok,
+      result,
+    });
+    console.log("generated", jobId, `${result.prompts.length} prompts`, `kit_ok=${kit.ok}`);
+  } catch (err) {
+    console.error("generation failed", jobId, err);
+    await store.setJSON(jobId, {
+      status: "error",
+      created_at: job.created_at,
+      first_name: intake.firstName,
+      kit_ok: kit.ok,
+      error: "The generator didn't finish. Try again in a minute.",
+    });
+  }
+};
