@@ -27,7 +27,17 @@ export default async (req: Request, _context: Context) => {
   }
 
   if (job.status === "error") {
-    return json({ status: "error", error: job.error || "Something broke on my end." }, 500);
+    // The raw failure is only exposed while DEBUG_ERRORS is on, so visitors
+    // never see internals but a failure can still be diagnosed from outside.
+    const debug = Netlify.env.get("DEBUG_ERRORS") === "1";
+    return json(
+      {
+        status: "error",
+        error: job.error || "Something broke on my end.",
+        ...(debug && job.detail ? { detail: job.detail } : {}),
+      },
+      500,
+    );
   }
 
   const age = Date.now() - new Date(job.created_at).getTime();

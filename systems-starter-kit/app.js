@@ -118,7 +118,8 @@ async function pollJob(jobId) {
 
     if (res.ok && data.status === "done") return data;
     if (data.status === "error") {
-      throw new Error(data.error || "Something broke on my end. Try again in a minute.");
+      const base = data.error || "Something broke on my end. Try again in a minute.";
+      throw new Error(data.detail ? `${base}\n\n[${data.detail}]` : base);
     }
     if (res.status === 404) {
       throw new Error("I lost track of that one. Start over?");

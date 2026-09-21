@@ -7,6 +7,24 @@ import type { Intake } from "../lib/validate.mts";
 type StoredJob = JobRecord & { intake?: Intake };
 
 /**
+ * A compact, quotable description of a failure - error class, HTTP status and
+ * message. Stored on the job so a failure can be diagnosed without reading
+ * function logs, which are not reachable from every environment this gets
+ * debugged from. Never shown to visitors: /api/result only reveals it while
+ * DEBUG_ERRORS is on.
+ */
+function describe(err: unknown): string {
+  if (err && typeof err === "object") {
+    const e = err as { name?: string; status?: number; message?: string };
+    return [e.name, e.status ? `HTTP ${e.status}` : "", e.message]
+      .filter(Boolean)
+      .join(" | ")
+      .slice(0, 800);
+  }
+  return String(err).slice(0, 800);
+}
+
+/**
  * Long-running half of the flow: subscribe the visitor to Kit, then generate.
  *
  * This endpoint is publicly reachable, so it takes only a job id - never the
@@ -62,6 +80,7 @@ export default async (req: Request, _context: Context) => {
       first_name: intake.firstName,
       kit_ok: kit.ok,
       error: "The generator didn't finish. Try again in a minute.",
+      detail: describe(err),
     });
   }
 };

@@ -30,4 +30,6 @@ export interface JobRecord {
   first_name?: string;
   result?: unknown;
   error?: string;
+  /** Raw failure description; surfaced only while DEBUG_ERRORS is on. */
+  detail?: string;
 }
