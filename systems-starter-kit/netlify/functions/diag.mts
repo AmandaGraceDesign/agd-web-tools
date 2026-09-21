@@ -8,9 +8,18 @@ import Anthropic from "@anthropic-ai/sdk";
  * from, so this reproduces the two Claude request shapes the generator uses
  * and reports what each one does. Visiting it in a browser is enough.
  *
- * Gated on DEBUG_ERRORS so it is not a public endpoint, and meant to be
- * deleted once the generator is working.
+ * Intentionally ungated: an env-var gate was indistinguishable from a routing
+ * failure while debugging. It returns no secret - key presence and length
+ * only - and is deleted as soon as the generator works.
  */
+
+/** No-store, so a cached 404 or stale body cannot be mistaken for a result. */
+function json(body: unknown) {
+  return new Response(JSON.stringify(body, null, 2), {
+    status: 200,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
+}
 
 function describe(err: unknown): string {
   if (err && typeof err === "object") {
@@ -31,10 +40,6 @@ const TINY_SCHEMA = {
 };
 
 export default async (_req: Request, _context: Context) => {
-  if (Netlify.env.get("DEBUG_ERRORS") !== "1") {
-    return new Response("Not found", { status: 404 });
-  }
-
   const apiKey = Netlify.env.get("ANTHROPIC_API_KEY") || "";
   const model = Netlify.env.get("CLAUDE_MODEL") || "claude-opus-5";
   const effort = Netlify.env.get("CLAUDE_EFFORT") || "medium";
@@ -42,7 +47,6 @@ export default async (_req: Request, _context: Context) => {
   const report: Record<string, unknown> = {
     anthropic_key_present: Boolean(apiKey),
     anthropic_key_length: apiKey.length,
-    anthropic_key_prefix: apiKey.slice(0, 7),
     kit_key_present: Boolean(Netlify.env.get("KIT_API_KEY")),
     model,
     effort,
@@ -50,7 +54,7 @@ export default async (_req: Request, _context: Context) => {
   };
 
   if (!apiKey) {
-    return Response.json({ ...report, verdict: "ANTHROPIC_API_KEY is not set" });
+    return json({ ...report, verdict: "ANTHROPIC_API_KEY is not set" });
   }
 
   const client = new Anthropic({ apiKey });
@@ -77,7 +81,7 @@ export default async (_req: Request, _context: Context) => {
     report.structured_call = describe(err);
   }
 
-  return Response.json(report);
+  return json(report);
 };
 
 export const config: Config = {
