@@ -18,12 +18,15 @@ export interface SubscribeOutcome {
 }
 
 /**
- * Add the visitor to the Kit form.
+ * Add the visitor to the Kit form, carrying the link to their own results.
  *
  * Deliberately never throws: a Kit outage should not cost the visitor the
  * prompts they just filled in a form to get. The caller logs the outcome.
  */
-export async function subscribe(intake: Intake): Promise<SubscribeOutcome> {
+export async function subscribe(
+  intake: Intake,
+  promptsUrl?: string,
+): Promise<SubscribeOutcome> {
   const apiKey = Netlify.env.get("KIT_API_KEY");
   if (!apiKey) {
     return { ok: false, detail: "KIT_API_KEY not set" };
@@ -40,6 +43,9 @@ export async function subscribe(intake: Intake): Promise<SubscribeOutcome> {
       body: JSON.stringify({
         email_address: intake.email,
         first_name: intake.firstName,
+        // The welcome email links here, so it delivers THEIR prompts rather
+        // than a generic download.
+        ...(promptsUrl ? { fields: { prompts_url: promptsUrl } } : {}),
       }),
       signal: AbortSignal.timeout(8000),
     });

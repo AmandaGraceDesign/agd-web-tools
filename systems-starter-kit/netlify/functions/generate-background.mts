@@ -53,11 +53,15 @@ export default async (req: Request, _context: Context) => {
   const intake = job.intake;
 
   // Claim the job so a duplicate delivery cannot generate twice.
-  await store.setJSON(jobId, { ...job, status: "running" as JobRecord["status"] });
+  await store.setJSON(jobId, { ...job, status: "running" });
 
   // The email is the price of the tool, so capture it before generating - but
   // never let a Kit failure cost the visitor the prompts they filled a form for.
-  const kit = await subscribe(intake);
+  // Netlify sets URL to the production site address.
+  const siteUrl = (Netlify.env.get("URL") || "").replace(/\/$/, "");
+  const promptsUrl = siteUrl ? `${siteUrl}/r/${jobId}` : undefined;
+
+  const kit = await subscribe(intake, promptsUrl);
   if (!kit.ok) {
     console.error("kit subscribe failed", jobId, kit.status ?? "", kit.detail ?? "");
   }

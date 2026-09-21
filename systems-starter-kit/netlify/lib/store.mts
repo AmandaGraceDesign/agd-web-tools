@@ -22,7 +22,7 @@ export function rateStore() {
   return isProduction() ? getStore(opts) : getDeployStore(opts);
 }
 
-export type JobStatus = "pending" | "done" | "error";
+export type JobStatus = "pending" | "running" | "done" | "error";
 
 export interface JobRecord {
   status: JobStatus;
