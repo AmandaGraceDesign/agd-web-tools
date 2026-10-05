@@ -37,7 +37,7 @@ export const BOTTLENECKS = {
   offer: "People look, then leave. My offer isn't landing",
   admin: "Admin. Everything is manual and I'm drowning",
   collection: "My next collection is stuck and won't get out the door",
-  reexplain: "I keep re-explaining the same things to Claude",
+  reexplain: "I keep re-explaining the same things to AI",
 } as const;
 
 export const CLAUDE_LEVELS = {
