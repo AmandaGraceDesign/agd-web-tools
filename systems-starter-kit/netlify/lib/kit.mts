@@ -4,13 +4,18 @@ import type { Recommendation } from "./routing.mts";
 const KIT_API = "https://api.kit.com/v4";
 
 /**
- * Form 9454523 = "CSL - 10 AI Prompts Freebie", the live destination of the
- * Instagram SYSTEMS trigger (500+ subscribers, still taking daily signups).
+ * Form 10007140 = "CSL Prompt Generator (tool)", created 2026-10-05 for this
+ * tool only. Its incentive email is OFF: visitors already have their prompts
+ * on screen, and a Kit automation on this form sends the welcome email with
+ * their prompts_url.
  *
- * NOT 9374679 - that is "CSL Positioning Interview". An earlier handoff doc
- * named 9374679 by mistake.
+ * NOT 9454523 ("CSL - 10 AI Prompts Freebie"). That form still delivers the
+ * PDF to website, blog and summit signups, so tool signups must stay off it.
+ * NOT 9374679 either ("CSL Positioning Interview").
+ *
+ * KIT_FORM_ID in Netlify overrides this.
  */
-const DEFAULT_FORM_ID = "9454523";
+const DEFAULT_FORM_ID = "10007140";
 
 /** Everyone who comes through the tool, so tool signups can be told apart from PDF signups. */
 const TOOL_TAG = 24303767; // "CSL Prompt Generator"

@@ -17,7 +17,8 @@ where you are with Claude (the gate), and one typed sentence on the 90-day goal.
   URLs and dates live in that file only.
 - Kit: the subscriber is created first (v4 will not add an unknown email to a
   form; v1 had this backwards, so new emails never landed), then added to form
-  9454523, then tagged `CSL Prompt Generator` + one `CSL PG Route - ...` tag.
+  10007140 "CSL Prompt Generator (tool)" (incentive email off; a Kit automation
+  on that form sends the welcome with `prompts_url`), then tagged `CSL Prompt Generator` + one `CSL PG Route - ...` tag.
   Answers go to custom fields `pg_makes`, `pg_business_name`, `pg_sells`,
   `pg_buyer`, `pg_bottleneck`, `pg_claude_level`, `pg_goal`, `pg_route`, plus
   `prompts_url`. Before the route tag goes on, every other `CSL PG Route - ...`
@@ -60,7 +61,7 @@ replayed or invented id does no work and spends no API credits.
    |---|---|---|
    | `ANTHROPIC_API_KEY` | your key | console.anthropic.com → API Keys. Paste it here only — it never belongs in the repo. |
    | `KIT_API_KEY` | your Kit v4 key | Kit → Settings → Developer → API Keys (the **v4** key, not v3). |
-   | `KIT_FORM_ID` | `9454523` | Optional — this is the default. See the note below. |
+   | `KIT_FORM_ID` | `10007140` | Optional — this is the default. See the note below. |
    | `CLAUDE_MODEL` | `claude-opus-5` | Optional — the default. |
    | `CLAUDE_EFFORT` | `medium` | Optional — `low` / `medium` / `high`. |
    | `DAILY_IP_LIMIT` | `5` | Optional — generations per visitor per day. |
@@ -74,12 +75,14 @@ replayed or invented id does no work and spends no API credits.
 
 ## The Kit form
 
-`KIT_FORM_ID` defaults to **9454523 — "CSL — 10 AI Prompts Freebie"**.
+`KIT_FORM_ID` defaults to **10007140 — "CSL Prompt Generator (tool)"**, created
+2026-10-05 for this tool only. Its incentive email is off; a Kit automation on the form
+sends the welcome email with the visitor's `prompts_url`.
 
-Verified against the live account on 2026-09-21: 501 subscribers, most recent signup the
-day before. The form ID **9374679** named in the original handoff doc is *"CSL Positioning
-Interview"* — 30 subscribers, none since 2026-05-08. Wiring the tool there would have sent
-every SYSTEMS lead into the wrong funnel.
+Do not point the tool at **9454523 — "CSL — 10 AI Prompts Freebie"**. That form still
+delivers the PDF to website, blog and summit signups (511 subscribers on 2026-10-05), so
+its incentive email has to keep talking about the PDF. The form ID **9374679** named in
+the original handoff doc is *"CSL Positioning Interview"*, the wrong funnel entirely.
 
 ## Cost
 
