@@ -61,11 +61,23 @@
     font-size:14.5px;line-height:1.55;margin:0 0 10px;color:var(--ink)}
   .tip{font-size:14.5px;color:var(--muted);margin:10px 0 0;padding-left:10px;border-left:2px solid var(--gold)}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
-    border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(32,69,104,.25);
+    border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}
   @keyframes sp{to{transform:rotate(360deg)}}
-  .loading{text-align:center;padding:50px 20px}
-  .loading p{color:var(--muted)}
+  .loading{text-align:center;padding:30px 20px 24px;margin:24px 0 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+  .loading h2{margin:0 0 16px}
+  .loading p{color:var(--muted);margin:12px 0 0}
+  .loading .stay{font-size:14.5px}
+  .tiles{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+  .tiles span{width:24px;height:24px;border-radius:6px;background:var(--blush);border:1px solid var(--line);transition:background .4s,border-color .4s,transform .4s}
+  .tiles span.on{border-color:transparent;transform:scale(1.08)}
+  .tiles span.on:nth-child(3n+1){background:var(--gold)}
+  .tiles span.on:nth-child(3n+2){background:var(--coral)}
+  .tiles span.on:nth-child(3n){background:var(--navy)}
+  .tiles span.next{animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{50%{background:var(--line)}}
+  .wait-label{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 8px}
+  @media (prefers-reduced-motion:reduce){.spin,.tiles span.next{animation:none}.tiles span{transition:none}}
   .cta{background:var(--navy);color:#fff;border-radius:var(--radius);padding:28px;margin:26px 0}
   .cta h2{color:#fff}
   .cta p{color:#cfdcea;margin:0 0 16px}
@@ -216,11 +228,16 @@
 
   <!-- STEP 3 -->
   <section id="step-loading" class="hidden">
-    <div class="loading">
+    <div class="loading" role="status">
       <h2><span class="spin"></span>Writing your ten prompts</h2>
+      <div class="tiles" id="tiles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       <p id="loading-msg">Reading what you told me about your business…</p>
+      <p class="stay">Usually 1 to 2 minutes. Keep this page open. Your prompts will show up right here.</p>
     </div>
-    <div id="rec-loading" aria-live="polite"></div>
+    <div id="rec-wait" class="hidden">
+      <p class="wait-label">While you wait: where I'd start</p>
+      <div id="rec-loading"></div>
+    </div>
   </section>
 
   <!-- STEP 4 -->

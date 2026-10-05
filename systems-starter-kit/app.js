@@ -101,6 +101,38 @@ $("back-btn").addEventListener("click", () => show("intake"));
 
 // --- Step 2: email gate, then start + poll -------------------------------
 
+// Ten tiles, one per prompt. Generation is a single call, so there is no real
+// per-prompt progress to report: the tiles ease toward 9 of 10 over a couple
+// of minutes and only the tenth lands when the prompts actually arrive.
+let tileTimer = null;
+
+function startTiles() {
+  const tiles = Array.from($("tiles").children);
+  const began = Date.now();
+  const paint = () => {
+    const secs = (Date.now() - began) / 1000;
+    const filled = Math.min(9, Math.floor(9 * (1 - Math.exp(-secs / 30))) + 1);
+    tiles.forEach((t, i) => {
+      t.classList.toggle("on", i < filled);
+      t.classList.toggle("next", i === filled);
+    });
+  };
+  paint();
+  tileTimer = setInterval(paint, 500);
+}
+
+function finishTiles() {
+  clearInterval(tileTimer);
+  Array.from($("tiles").children).forEach((t) => {
+    t.classList.add("on");
+    t.classList.remove("next");
+  });
+}
+
+function stopTiles() {
+  clearInterval(tileTimer);
+}
+
 const LOADING_MESSAGES = [
   "Reading what you told me about your business…",
   "Working out where your week actually leaks…",
@@ -166,6 +198,8 @@ $("gate").addEventListener("submit", async (e) => {
   show("loading");
 
   $("rec-loading").textContent = "";
+  $("rec-wait").classList.add("hidden");
+  startTiles();
 
   let i = 0;
   const ticker = setInterval(() => {
@@ -179,8 +213,11 @@ $("gate").addEventListener("submit", async (e) => {
     // are still being written instead of making them stare at a spinner.
     if (started.rec && started.rec.primary) {
       $("rec-loading").appendChild(recCard(started.rec, { newTab: true }));
+      $("rec-wait").classList.remove("hidden");
     }
     const data = await pollJob(started.job_id);
+    finishTiles();
+    await sleep(400); // let the tenth tile land before the page swaps
     generated = data;
     render(data, first_name);
     show("results");
@@ -188,6 +225,7 @@ $("gate").addEventListener("submit", async (e) => {
     show("email");
     fail("gate-err", err.message || "Something broke on my end. Try again in a minute.");
   } finally {
+    stopTiles();
     clearInterval(ticker);
     $("gate-btn").disabled = false;
   }
