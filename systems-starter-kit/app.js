@@ -119,7 +119,7 @@ async function startJob(payload) {
   if (!res.ok || !data.job_id) {
     throw new Error(data.error || "Something broke on my end. Try again in a minute.");
   }
-  return data.job_id;
+  return data;
 }
 
 async function pollJob(jobId) {
@@ -165,6 +165,8 @@ $("gate").addEventListener("submit", async (e) => {
   $("gate-btn").disabled = true;
   show("loading");
 
+  $("rec-loading").textContent = "";
+
   let i = 0;
   const ticker = setInterval(() => {
     i = (i + 1) % LOADING_MESSAGES.length;
@@ -172,8 +174,13 @@ $("gate").addEventListener("submit", async (e) => {
   }, 6000);
 
   try {
-    const jobId = await startJob({ ...profile, first_name, email });
-    const data = await pollJob(jobId);
+    const started = await startJob({ ...profile, first_name, email });
+    // The recommendation is decided at intake, so show it while the prompts
+    // are still being written instead of making them stare at a spinner.
+    if (started.rec && started.rec.primary) {
+      $("rec-loading").appendChild(recCard(started.rec, { newTab: true }));
+    }
+    const data = await pollJob(started.job_id);
     generated = data;
     render(data, first_name);
     show("results");
@@ -250,31 +257,32 @@ function el(tag, cls, text) {
   return n;
 }
 
-function a(href, text, cls) {
+function a(href, text, cls, newTab) {
   const n = el("a", cls, text);
   n.href = href;
+  // On the loading screen a click must not navigate away from the
+  // generation in progress, so links open in a new tab there.
+  if (newTab) {
+    n.target = "_blank";
+    n.rel = "noopener";
+  }
   return n;
 }
 
-function renderRec(rec) {
-  const top = $("rec");
-  const bottom = $("rec-bottom");
-  top.textContent = "";
-  bottom.textContent = "";
-  if (!rec || !rec.primary) return;
-
+function recCard(rec, opts = {}) {
+  const nt = !!opts.newTab;
   const card = el("div", "rec");
   card.appendChild(el("p", "eyebrow", "Based on what you told me"));
   card.appendChild(el("h2", "", rec.headline));
   card.appendChild(el("p", "stitle", `Session ${rec.primary.session}: ${rec.primary.title}`));
   card.appendChild(el("p", "when", `${rec.primary.when} · ${rec.primary.price}`));
   card.appendChild(el("p", "why", rec.why));
-  card.appendChild(a(rec.primary.url, `See Session ${rec.primary.session}`, "btn"));
+  card.appendChild(a(rec.primary.url, `See Session ${rec.primary.session}`, "btn", nt));
 
   if (rec.alsoFree) {
     const p = el("p", "small");
     p.appendChild(document.createTextNode("Then "));
-    p.appendChild(a(rec.alsoFree.url, `Session ${rec.alsoFree.session}: ${rec.alsoFree.title}`));
+    p.appendChild(a(rec.alsoFree.url, `Session ${rec.alsoFree.session}: ${rec.alsoFree.title}`, "", nt));
     p.appendChild(document.createTextNode(". Also free."));
     card.appendChild(p);
   }
@@ -283,7 +291,7 @@ function renderRec(rec) {
     const sub = el("div", "sub");
     sub.appendChild(el("p", "", rec.next.why));
     const p = el("p", "small");
-    p.appendChild(a(rec.next.url, `Session ${rec.next.session}: ${rec.next.title}`));
+    p.appendChild(a(rec.next.url, `Session ${rec.next.session}: ${rec.next.title}`, "", nt));
     p.appendChild(document.createTextNode(` · ${rec.next.when} · ${rec.next.price}`));
     sub.appendChild(p);
     card.appendChild(sub);
@@ -294,17 +302,27 @@ function renderRec(rec) {
   if (rec.bundle) {
     const p = el("p", "small");
     p.appendChild(document.createTextNode(`${rec.bundle.line} `));
-    p.appendChild(a(rec.bundle.url, "See the bundle"));
+    p.appendChild(a(rec.bundle.url, "See the bundle", "", nt));
     card.appendChild(p);
   }
   if (rec.season) {
     const p = el("p", "small");
     p.appendChild(document.createTextNode(`${rec.season.line} `));
-    p.appendChild(a(rec.season.url, "See the Season"));
+    p.appendChild(a(rec.season.url, "See the Season", "", nt));
     card.appendChild(p);
   }
 
-  top.appendChild(card);
+  return card;
+}
+
+function renderRec(rec) {
+  const top = $("rec");
+  const bottom = $("rec-bottom");
+  top.textContent = "";
+  bottom.textContent = "";
+  if (!rec || !rec.primary) return;
+
+  top.appendChild(recCard(rec));
 
   // A short repeat under the prompts, for whoever scrolled all ten.
   const cta = el("div", "cta");

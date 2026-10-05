@@ -69,13 +69,15 @@ export default async (req: Request, _context: Context) => {
   }
 
   const jobId = crypto.randomUUID();
+  // Deterministic from two tap answers, so it is decided here, once, and
+  // sent straight back so the page can show it while the prompts generate.
+  const rec = recommend(intake.bottleneck, intake.claude);
   const record: JobRecord & { intake: typeof intake } = {
     status: "pending",
     created_at: new Date().toISOString(),
     first_name: intake.firstName,
     intake,
-    // Deterministic from two tap answers, so it is decided here, once.
-    rec: recommend(intake.bottleneck, intake.claude),
+    rec,
   };
   await jobStore().setJSON(jobId, record);
 
@@ -99,7 +101,7 @@ export default async (req: Request, _context: Context) => {
     return json({ error: "Something broke on my end. Try again in a minute." }, 502);
   }
 
-  return json({ job_id: jobId });
+  return json({ job_id: jobId, rec });
 };
 
 export const config: Config = {
