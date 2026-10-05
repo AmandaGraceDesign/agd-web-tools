@@ -100,10 +100,10 @@ function renderRec(rec: Recommendation | undefined): string {
   return `<div class="rec">
     <p class="eyebrow">Based on what you told me</p>
     <h2>${escape(rec.headline)}</h2>
-    <p class="stitle">Session ${p.session}: ${escape(p.title)}</p>
+    <p class="stitle">${escape(p.heading || `Session ${p.session}: ${p.title}`)}</p>
     <p class="when">${escape(p.when)} &middot; ${escape(p.price)}</p>
     <p>${escape(rec.why)}</p>
-    <a class="btn" href="${escape(p.url)}">See Session ${p.session}</a>
+    <a class="btn" href="${escape(p.url)}">${escape(p.cta || `See Session ${p.session}`)}</a>
     ${rec.alsoFree ? `<p class="small">Then ${link(rec.alsoFree.url, `Session ${rec.alsoFree.session}: ${rec.alsoFree.title}`)}. Also free.</p>` : ""}
     ${rec.next ? `<div class="sub"><p>${escape(rec.next.why)}</p><p class="small">${link(rec.next.url, `Session ${rec.next.session}: ${rec.next.title}`)} &middot; ${escape(rec.next.when)} &middot; ${escape(rec.next.price)}</p></div>` : ""}
     ${rec.proNote ? `<p class="pro">${escape(rec.proNote)}</p>` : ""}

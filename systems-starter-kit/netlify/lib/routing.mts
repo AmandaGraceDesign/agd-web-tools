@@ -67,6 +67,8 @@ export const SESSIONS: Record<string, Session> = {
 };
 
 const PRICE_SINGLE = "$67";
+/** One signup page that grants both free sessions (tags "CSL Free 1&2 Bundle - Signup"). */
+const FREE_1_2_URL = "https://www.amandagracedesign.com/offers/dLLoKhDs";
 const BUNDLE = { price: "$150", url: `${SITE}/sessions/bundle-of-3` };
 const SEASON = { price: "$497", url: `${SITE}/founding-season`, sellsUntilUtc: "2027-01-01T05:00:00Z" };
 
@@ -113,6 +115,10 @@ export interface RouteLink {
   /** "Live Wednesday, Oct 14 at 1pm ET" or "Replay, yours to keep". */
   when: string;
   live: boolean;
+  /** Overrides the "Session N: title" line when one link covers more than one session. */
+  heading?: string;
+  /** Overrides the "See Session N" button label. */
+  cta?: string;
 }
 
 export interface Recommendation {
@@ -121,7 +127,10 @@ export interface Recommendation {
   headline: string;
   why: string;
   primary: RouteLink;
-  /** Free Session 2 rides along with Session 1. */
+  /**
+   * Free Session 2 as a separate link. No longer set: Sessions 1 & 2 share one
+   * signup page now. Kept so results saved before that change still render.
+   */
   alsoFree?: RouteLink;
   next?: RouteLink & { why: string };
   proNote?: string;
@@ -137,7 +146,7 @@ function link(key: string, now: Date): RouteLink {
     title: s.title,
     url: s.url,
     price: s.free ? "Free" : PRICE_SINGLE,
-    when: s.free ? "Replay, free" : live ? s.liveLabel! : "Replay, yours to keep",
+    when: s.free ? "Replay" : live ? s.liveLabel! : "Replay, yours to keep",
     live,
   };
 }
@@ -165,20 +174,17 @@ export function recommend(
 
   // Never used Claude: the free sessions come first, no matter what Q3 said.
   if (claude === "never") {
-    const s2: RouteLink = {
-      session: 2,
-      title: "Claude Projects + the Prompting Formula",
-      url: `${SITE}/sessions/session-2`,
-      price: "Free",
-      when: "Replay, free",
-      live: false,
-    };
     return {
       key: `s1-then-${route.session}`,
       headline: "Start here: free Sessions 1 & 2",
       why: "You're new to Claude, so set it up properly first. Session 1 sets Claude up for your business. Session 2 teaches the prompting formula these ten prompts are built on. Both are free.",
-      primary: link("s1", now),
-      alsoFree: s2,
+      primary: {
+        ...link("s1", now),
+        url: FREE_1_2_URL,
+        when: "Replays",
+        heading: "Sessions 1 & 2: Set Up Claude + the Prompting Formula",
+        cta: "Get free Sessions 1 & 2",
+      },
       next: { ...target, why: `When you're ready for the thing eating your week: ${route.why}` },
       ...(targetIsPro ? { proNote: PRO_NOTE } : {}),
     };

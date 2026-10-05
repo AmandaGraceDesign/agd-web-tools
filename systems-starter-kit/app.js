@@ -312,10 +312,10 @@ function recCard(rec, opts = {}) {
   const card = el("div", "rec");
   card.appendChild(el("p", "eyebrow", "Based on what you told me"));
   card.appendChild(el("h2", "", rec.headline));
-  card.appendChild(el("p", "stitle", `Session ${rec.primary.session}: ${rec.primary.title}`));
+  card.appendChild(el("p", "stitle", rec.primary.heading || `Session ${rec.primary.session}: ${rec.primary.title}`));
   card.appendChild(el("p", "when", `${rec.primary.when} · ${rec.primary.price}`));
   card.appendChild(el("p", "why", rec.why));
-  card.appendChild(a(rec.primary.url, `See Session ${rec.primary.session}`, "btn", nt));
+  card.appendChild(a(rec.primary.url, rec.primary.cta || `See Session ${rec.primary.session}`, "btn", nt));
 
   if (rec.alsoFree) {
     const p = el("p", "small");
@@ -366,7 +366,7 @@ function renderRec(rec) {
   const cta = el("div", "cta");
   cta.appendChild(el("h2", "", "Want to build the system, not just run the prompt?"));
   cta.appendChild(el("p", "", "Creative Systems Lab is live 90-minute Claude builds, twice a month. You walk away with something built, not just something learned."));
-  cta.appendChild(a(rec.primary.url, `Start with Session ${rec.primary.session}`));
+  cta.appendChild(a(rec.primary.url, rec.primary.cta || `Start with Session ${rec.primary.session}`));
   bottom.appendChild(cta);
 }
 
@@ -403,7 +403,7 @@ function asPlainText() {
   const rec = generated && generated.rec;
   if (rec && rec.primary) {
     lines.push("=".repeat(60), "WHERE TO START", "=".repeat(60), "");
-    lines.push(`Session ${rec.primary.session}: ${rec.primary.title}`, rec.why, rec.primary.url, "");
+    lines.push(rec.primary.heading || `Session ${rec.primary.session}: ${rec.primary.title}`, rec.why, rec.primary.url, "");
   } else {
     lines.push("", "Build the system, not just the prompt: https://creativesystemslab.com");
   }

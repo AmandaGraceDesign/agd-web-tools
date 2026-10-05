@@ -108,7 +108,11 @@ test("never used Claude goes to free Sessions 1 & 2 first, Q3 session second", (
   const rec = recommend("collection", "never", BEFORE_S9);
   assert.equal(rec.primary.session, 1);
   assert.equal(rec.primary.price, "Free");
-  assert.equal(rec.alsoFree?.session, 2);
+  // One signup page grants both free sessions, so there is one button, not two links.
+  assert.equal(rec.primary.url, "https://www.amandagracedesign.com/offers/dLLoKhDs");
+  assert.equal(rec.primary.cta, "Get free Sessions 1 & 2");
+  assert.equal(rec.alsoFree, undefined);
+  assert.equal(`${rec.primary.when} · ${rec.primary.price}`, "Replays · Free");
   assert.equal(rec.next?.session, 9);
   assert.ok(rec.proNote, "S9 is Pro, so the note shows");
   assert.equal(rec.bundle, undefined);
