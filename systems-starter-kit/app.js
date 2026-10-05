@@ -1,4 +1,4 @@
-/* Systems Starter Kit, front end (v2: five-question diagnostic + CSL routing).
+/* Systems Starter Kit, front end (v2: six-question diagnostic + CSL routing).
  * Three steps: intake -> email gate -> results.
  *
  * Generation runs in a Netlify background function (a synchronous one would
@@ -63,7 +63,9 @@ $("intake").addEventListener("submit", (e) => {
 
   const makes = checkedValues("makes");
   const makes_other = $("makes_other").value.trim();
+  const business_name = $("business_name").value.trim();
   const sells = checkedValues("sells");
+  const buyer = $("buyer").value.trim();
   const bottleneck = picked("bottleneck");
   const claude = picked("claude");
   const goal = $("goal").value.trim();
@@ -73,16 +75,18 @@ $("intake").addEventListener("submit", (e) => {
     return fail("intake-err", "Tell me in a few words what else you make.");
   }
   if (!sells.length) return fail("intake-err", "Tap at least one place you sell (question 2). Not selling yet counts.");
-  if (!bottleneck) return fail("intake-err", "Tap what's eating your week (question 3).");
-  if (!claude) return fail("intake-err", "Tap where you are with Claude (question 4).");
+  if (!bottleneck) return fail("intake-err", "Tap what's eating your week (question 4).");
+  if (!claude) return fail("intake-err", "Tap where you are with Claude (question 5).");
   if (goal.length < 10) {
-    return fail("intake-err", "Give me one sentence on what you want done in the next 90 days (question 5).");
+    return fail("intake-err", "Give me one sentence on what you want done in the next 90 days (question 6).");
   }
 
   profile = {
     makes,
     makes_other,
+    business_name,
     sells,
+    buyer,
     bottleneck,
     claude,
     goal,

@@ -18,8 +18,13 @@ where you are with Claude (the gate), and one typed sentence on the 90-day goal.
 - Kit: the subscriber is created first (v4 will not add an unknown email to a
   form; v1 had this backwards, so new emails never landed), then added to form
   9454523, then tagged `CSL Prompt Generator` + one `CSL PG Route - ...` tag.
-  Answers go to custom fields `pg_makes`, `pg_sells`, `pg_bottleneck`,
-  `pg_claude_level`, `pg_goal`, `pg_route`, plus `prompts_url`.
+  Answers go to custom fields `pg_makes`, `pg_business_name`, `pg_sells`,
+  `pg_buyer`, `pg_bottleneck`, `pg_claude_level`, `pg_goal`, `pg_route`, plus
+  `prompts_url`. Before the route tag goes on, every other `CSL PG Route - ...`
+  tag is removed, so a rerun leaves only the current route.
+- Two optional text answers (added 2026-10-05): business name under question 1
+  (80 chars) and "Who buys from you?" as question 3 (200 chars). Both go to the
+  model so the prompts use the name and write for that buyer.
 - Tag and field IDs were created 2026-10-05 and are hard-coded in `kit.mts`.
 
 ## How it runs

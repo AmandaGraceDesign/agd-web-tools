@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ten AI Prompts For Your Actual Business | Creative Systems Lab</title>
-<meta name="description" content="Five quick questions. Ten Claude prompts written for your creative business, not a generic list.">
+<meta name="description" content="Six quick questions. Ten Claude prompts written for your creative business, not a generic list.">
 <meta name="robots" content="noindex">
 <meta property="og:title" content="Ten AI Prompts For Your Actual Business">
 <meta property="og:description" content="Not a PDF of generic prompts. Ten prompts written around your business, your bottleneck and your next 90 days.">
@@ -30,6 +30,7 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin:0 0 22px}
   label{display:block;font-weight:600;margin:0 0 4px;font-size:15.5px}
   .hint{color:var(--muted);font-size:14px;margin:0 0 8px}
+  .opt-tag{color:var(--muted);font-weight:400;font-size:14px}
   input[type=text],input[type=email],textarea{
     width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
     font:inherit;font-size:16px;background:#fff;color:var(--ink)}
@@ -110,7 +111,7 @@
   <section id="step-intake">
     <div class="hero">
       <h1>Ten AI prompts, written for your business.</h1>
-      <p class="lede">Not a PDF of generic prompts you'll skim once and forget. Five quick questions, about a minute, and I'll write ten Claude prompts around <em>your</em> business. Plus I'll tell you where to start.</p>
+      <p class="lede">Not a PDF of generic prompts you'll skim once and forget. Six quick questions, about a minute, and I'll write ten Claude prompts around <em>your</em> business. Plus I'll tell you where to start.</p>
       <div class="clarify"><strong>To be clear:</strong> this is not about generating art with AI. This is about using AI to run the business around your art.</div>
     </div>
 
@@ -129,6 +130,11 @@
         <input type="text" id="makes_other" class="hidden" maxlength="80" placeholder="Like: pottery, quilts, stickers" aria-label="What you make">
       </fieldset>
 
+      <div class="field">
+        <label for="business_name">Business name <span class="opt-tag">(optional)</span></label>
+        <input type="text" id="business_name" name="business_name" maxlength="80" placeholder="Like: Blue Fern Studio" autocomplete="organization">
+      </div>
+
       <fieldset class="field">
         <legend><span class="qn">2</span>Where do you sell it?</legend>
         <p class="hint">Tap all that apply.</p>
@@ -143,8 +149,13 @@
         </div>
       </fieldset>
 
+      <div class="field">
+        <label for="buyer"><span class="qn">3</span>Who buys from you? <span class="opt-tag">(optional)</span></label>
+        <input type="text" id="buyer" name="buyer" maxlength="200" placeholder="Like: quilters who buy fabric by the yard">
+      </div>
+
       <fieldset class="field">
-        <legend><span class="qn">3</span>What's eating your week right now?</legend>
+        <legend><span class="qn">4</span>What's eating your week right now?</legend>
         <p class="hint">Pick the big one.</p>
         <div class="opts" id="bottleneck">
           <label class="opt"><input type="radio" name="bottleneck" value="no_sales"><span>I post, but nobody buys</span></label>
@@ -158,7 +169,7 @@
       </fieldset>
 
       <fieldset class="field">
-        <legend><span class="qn">4</span>Where are you with Claude?</legend>
+        <legend><span class="qn">5</span>Where are you with Claude?</legend>
         <div class="chips" id="claude">
           <label class="chip"><input type="radio" name="claude" value="never"><span>Never used it</span></label>
           <label class="chip"><input type="radio" name="claude" value="free_sometimes"><span>Free plan, now and then</span></label>
@@ -168,7 +179,7 @@
       </fieldset>
 
       <div class="field">
-        <label for="goal"><span class="qn">5</span>In one sentence: what do you want done in the next 90 days?</label>
+        <label for="goal"><span class="qn">6</span>In one sentence: what do you want done in the next 90 days?</label>
         <textarea id="goal" name="goal" maxlength="300" rows="3" placeholder="Launch my holiday collection on Spoonflower and actually email my list about it."></textarea>
       </div>
 

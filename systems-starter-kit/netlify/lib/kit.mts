@@ -34,33 +34,87 @@ export function routeTagId(routeKey: string): number | undefined {
   return ROUTE_TAGS[routeKey.startsWith("s1-then-") ? "s1" : routeKey];
 }
 
+/** Every route tag in Kit is named "CSL PG Route - ...". */
+const ROUTE_TAG_PREFIX = "CSL PG Route - ";
+
+/**
+ * The route tags to strip before tagging the current route, so someone who
+ * reruns the tool only ever carries their latest route. Matches on the name
+ * prefix, so a route tag added in Kit later is cleaned up too.
+ */
+export function staleRouteTagIds(
+  tags: { id: number; name: string }[],
+  currentTagId: number | undefined,
+): number[] {
+  return tags
+    .filter((t) => t.name.startsWith(ROUTE_TAG_PREFIX) && t.id !== currentTagId)
+    .map((t) => t.id);
+}
+
 export interface SubscribeOutcome {
   ok: boolean;
   status?: number;
   detail?: string;
 }
 
-async function post(path: string, apiKey: string, body: unknown): Promise<SubscribeOutcome> {
+interface CallOutcome extends SubscribeOutcome {
+  data?: unknown;
+}
+
+async function call(
+  method: "GET" | "POST" | "DELETE",
+  path: string,
+  apiKey: string,
+  body?: unknown,
+): Promise<CallOutcome> {
   try {
     const res = await fetch(`${KIT_API}${path}`, {
-      method: "POST",
+      method,
       headers: { "Content-Type": "application/json", "X-Kit-Api-Key": apiKey },
-      body: JSON.stringify(body),
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
-      return { ok: false, status: res.status, detail: `${path}: ${detail.slice(0, 300)}` };
+      return { ok: false, status: res.status, detail: `${method} ${path}: ${detail.slice(0, 300)}` };
     }
-    return { ok: true, status: res.status };
+    // DELETE answers 204 with no body.
+    const data = res.status === 204 ? undefined : await res.json().catch(() => undefined);
+    return { ok: true, status: res.status, data };
   } catch (err) {
-    return { ok: false, detail: `${path}: ${err instanceof Error ? err.message : String(err)}` };
+    return {
+      ok: false,
+      detail: `${method} ${path}: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
+}
+
+const post = (path: string, apiKey: string, body: unknown) => call("POST", path, apiKey, body);
+
+/**
+ * Remove every route tag except the current one. Needs the subscriber id,
+ * which the upsert returns. A failure here is reported but never stops the
+ * current route tag from going on.
+ */
+async function clearStaleRouteTags(
+  subscriberId: number,
+  currentTagId: number | undefined,
+  apiKey: string,
+): Promise<CallOutcome[]> {
+  const listed = await call("GET", `/subscribers/${subscriberId}/tags?per_page=1000`, apiKey);
+  if (!listed.ok) return [listed];
+  const tags = (listed.data as { tags?: { id: number; name: string }[] } | undefined)?.tags ?? [];
+  return Promise.all(
+    staleRouteTagIds(tags, currentTagId).map((id) =>
+      call("DELETE", `/tags/${id}/subscribers/${subscriberId}`, apiKey),
+    ),
+  );
 }
 
 /**
  * Create (or update) the subscriber with every answer as a custom field, add
- * them to the form, then tag them with the tool tag and their route tag.
+ * them to the form, remove any earlier route tag, then tag them with the tool
+ * tag and their current route tag.
  *
  * Deliberately never throws: a Kit outage should not cost the visitor the
  * prompts they just filled in a form to get. The caller logs the outcome.
@@ -78,7 +132,10 @@ export async function subscribe(
 
   const fields: Record<string, string> = {
     pg_makes: makesLabel(intake),
+    // Always sent, even empty, so a rerun without them clears the old answer.
+    pg_business_name: intake.businessName ?? "",
     pg_sells: intake.sells.map((s) => SELLS[s]).join(", "),
+    pg_buyer: intake.buyer ?? "",
     pg_bottleneck: BOTTLENECKS[intake.bottleneck],
     pg_claude_level: CLAUDE_LEVELS[intake.claude],
     pg_goal: intake.goal,
@@ -103,12 +160,21 @@ export async function subscribe(
     email_address: intake.email,
   });
 
-  const tags = [TOOL_TAG, routeTagId(rec.key)].filter((t): t is number => !!t);
+  // A rerun can land on a different route. Clear the old route tag(s) first,
+  // so Kit only ever shows the current one and a route automation can't fire
+  // on a stale answer.
+  const routeTag = routeTagId(rec.key);
+  const subscriberId = (upsert.data as { subscriber?: { id?: number } } | undefined)?.subscriber?.id;
+  const cleared: CallOutcome[] = subscriberId
+    ? await clearStaleRouteTags(subscriberId, routeTag, apiKey)
+    : [{ ok: false, detail: "upsert returned no subscriber id; old route tags not cleared" }];
+
+  const tags = [TOOL_TAG, routeTag].filter((t): t is number => !!t);
   const tagged = await Promise.all(
     tags.map((id) => post(`/tags/${id}/subscribers`, apiKey, { email_address: intake.email })),
   );
 
-  const failed = [form, ...tagged].filter((r) => !r.ok);
+  const failed = [form, ...cleared, ...tagged].filter((r) => !r.ok);
   return failed.length
     ? { ok: false, status: failed[0].status, detail: failed.map((f) => f.detail).join(" | ") }
     : { ok: true, status: form.status };

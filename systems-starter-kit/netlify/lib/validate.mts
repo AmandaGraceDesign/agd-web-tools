@@ -1,14 +1,16 @@
 /**
- * Intake v2 (2026-10-05): five questions, four of them taps.
+ * Intake v2 (2026-10-05): six questions, four of them taps.
  *
  * Q1 makes        - any number of choices, plus a short text box when "other"
+ *    businessName - optional, short text box under Q1
  * Q2 sells        - any number of choices
- * Q3 bottleneck   - one choice; this is the routing question
- * Q4 claude       - one choice; this gates the route
- * Q5 goal         - one typed sentence: what they want done in 90 days
+ * Q3 buyer        - optional: who buys from them, in their words
+ * Q4 bottleneck   - one choice; this is the routing question
+ * Q5 claude       - one choice; this gates the route
+ * Q6 goal         - one typed sentence: what they want done in 90 days
  *
- * Every tap answer is checked against a fixed list. Only the two text boxes
- * carry free text from the public, and both are capped and control-stripped.
+ * Every tap answer is checked against a fixed list. Only the text boxes carry
+ * free text from the public, and all of them are capped and control-stripped.
  */
 
 export const MAKES = {
@@ -55,6 +57,8 @@ export type ClaudeLevelKey = keyof typeof CLAUDE_LEVELS;
 /** Input caps. These bound both abuse and the per-call token bill. */
 export const LIMITS = {
   makesOther: 80,
+  businessName: 80,
+  buyer: 200,
   goal: 300,
   firstName: 60,
   email: 160,
@@ -64,7 +68,11 @@ export const LIMITS = {
 export interface Profile {
   makes: MakesKey[];
   makesOther: string;
+  /** Optional. Empty string when not given. */
+  businessName: string;
   sells: SellsKey[];
+  /** Optional: who buys from them, in their words. Empty string when not given. */
+  buyer: string;
   bottleneck: BottleneckKey;
   claude: ClaudeLevelKey;
   goal: string;
@@ -118,6 +126,8 @@ export function parseIntake(raw: unknown): ParseResult {
     return { ok: false, error: "Tell me in a few words what else you make." };
   }
 
+  const businessName = clean(body.business_name, LIMITS.businessName);
+
   const sells = Array.isArray(body.sells)
     ? Array.from(
         new Set(
@@ -128,6 +138,8 @@ export function parseIntake(raw: unknown): ParseResult {
       )
     : [];
   if (!sells.length) return { ok: false, error: "Tap at least one place you sell." };
+
+  const buyer = clean(body.buyer, LIMITS.buyer);
 
   const bottleneck = oneOf(BOTTLENECKS, body.bottleneck);
   if (!bottleneck) return { ok: false, error: "Tap what's eating your week." };
@@ -150,7 +162,9 @@ export function parseIntake(raw: unknown): ParseResult {
     value: {
       makes,
       makesOther: makes.includes("other") ? makesOther : "",
+      businessName,
       sells,
+      buyer,
       bottleneck,
       claude,
       goal,

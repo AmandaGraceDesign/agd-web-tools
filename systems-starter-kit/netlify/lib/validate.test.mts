@@ -53,6 +53,31 @@ test("'what you make' takes several answers; 'something else' needs its text box
   if (r2.ok) assert.equal(makesLabel(r2.value), "Surface patterns");
 });
 
+test("business name is optional, capped at 80 and control-stripped", () => {
+  const none = parseIntake(good);
+  assert.equal(none.ok, true);
+  if (none.ok) assert.equal(none.value.businessName, "");
+  const r = parseIntake({ ...good, business_name: "  Blue\u0000 Fern   Studio " });
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.value.businessName, "Blue Fern Studio");
+  const long = parseIntake({ ...good, business_name: "x".repeat(500) });
+  assert.equal(long.ok, true);
+  if (long.ok) assert.equal(long.value.businessName.length, 80);
+  assert.equal(parseIntake({ ...good, business_name: 42 }).ok, true);
+});
+
+test("'who buys from you' is optional, capped at 200 and control-stripped", () => {
+  const none = parseIntake(good);
+  assert.equal(none.ok, true);
+  if (none.ok) assert.equal(none.value.buyer, "");
+  const r = parseIntake({ ...good, buyer: "quilters who buy\u0007 fabric by the yard" });
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.value.buyer, "quilters who buy fabric by the yard");
+  const long = parseIntake({ ...good, buyer: "y".repeat(900) });
+  assert.equal(long.ok, true);
+  if (long.ok) assert.equal(long.value.buyer.length, 200);
+});
+
 test("caps and strips the free text", () => {
   const r = parseIntake({ ...good, goal: "a\u0000b ".repeat(400) });
   assert.equal(r.ok, true);
