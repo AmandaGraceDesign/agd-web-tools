@@ -23,7 +23,12 @@ export default async (req: Request, _context: Context) => {
   }
 
   if (job.status === "done") {
-    return json({ status: "done", first_name: job.first_name, ...(job.result as object) });
+    return json({
+      status: "done",
+      first_name: job.first_name,
+      ...(job.result as object),
+      rec: job.rec ?? null,
+    });
   }
 
   if (job.status === "error") {

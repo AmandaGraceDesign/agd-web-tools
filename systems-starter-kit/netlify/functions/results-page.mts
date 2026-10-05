@@ -1,6 +1,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { jobStore, type JobRecord } from "../lib/store.mts";
 import type { Generated, GeneratedPrompt } from "../lib/claude.mts";
+import type { Recommendation } from "../lib/routing.mts";
 
 /**
  * A permanent, shareable page for one person's prompts.
@@ -63,7 +64,7 @@ function page(title: string, body: string, refresh = false): Response {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>${escape(title)}</title>${refresh ? '<meta http-equiv="refresh" content="8">' : ""}
-<style>${STYLES}</style></head><body>
+<style>${STYLES}${REC_STYLES}</style></head><body>
 <header><div class="wrap"><span class="dot"></span><span>Creative Systems Lab</span></div></header>
 <main class="wrap">${body}</main>
 <footer class="wrap"><p>Built by <a href="https://amandagracedesign.com">Amanda Grace Design</a></p></footer>
@@ -72,12 +73,44 @@ function page(title: string, body: string, refresh = false): Response {
   );
 }
 
-const CTA = `<div class="cta">
+const CTA_DEFAULT = `<div class="cta">
   <h2>Want to build the system, not just run the prompt?</h2>
-  <p>Creative Systems Lab is a monthly 90-minute live build. You walk away with
-     something built &mdash; not just something learned. Sessions 1 and 2 are free.</p>
-  <a href="https://creativesystemslab.com">See the next session</a>
+  <p>Creative Systems Lab is live 90-minute Claude builds, twice a month. You walk away
+     with something built, not just something learned. Sessions 1 and 2 are free.</p>
+  <a href="https://creativesystemslab.com">See the sessions</a>
 </div>`;
+
+const REC_STYLES = `
+  .rec{background:#fff;border:2px solid var(--gold);border-radius:14px;padding:24px;margin:0 0 26px}
+  .rec .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 4px}
+  .rec h2{font-size:23px;margin:0 0 8px}
+  .rec .stitle{font-weight:700;margin:0 0 4px}
+  .rec .when{font-size:14.5px;color:var(--muted);margin:0 0 14px}
+  .rec a.btn{display:inline-block;background:var(--coral);color:#fff;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:999px}
+  .rec .sub{border-top:1px solid var(--line);margin:18px 0 0;padding:16px 0 0;font-size:15.5px}
+  .rec .pro{background:var(--blush);border-radius:10px;padding:12px 14px;font-size:15px;margin:14px 0 0}
+  .rec .small{font-size:15px;color:var(--muted);margin:14px 0 0}
+  .rec .small a,.rec .sub a{color:var(--navy);font-weight:700}
+`;
+
+function renderRec(rec: Recommendation | undefined): string {
+  if (!rec || !rec.primary) return "";
+  const p = rec.primary;
+  const link = (href: string, text: string) => `<a href="${escape(href)}">${escape(text)}</a>`;
+  return `<div class="rec">
+    <p class="eyebrow">Based on what you told me</p>
+    <h2>${escape(rec.headline)}</h2>
+    <p class="stitle">Session ${p.session}: ${escape(p.title)}</p>
+    <p class="when">${escape(p.when)} &middot; ${escape(p.price)}</p>
+    <p>${escape(rec.why)}</p>
+    <a class="btn" href="${escape(p.url)}">See Session ${p.session}</a>
+    ${rec.alsoFree ? `<p class="small">Then ${link(rec.alsoFree.url, `Session ${rec.alsoFree.session}: ${rec.alsoFree.title}`)}. Also free.</p>` : ""}
+    ${rec.next ? `<div class="sub"><p>${escape(rec.next.why)}</p><p class="small">${link(rec.next.url, `Session ${rec.next.session}: ${rec.next.title}`)} &middot; ${escape(rec.next.when)} &middot; ${escape(rec.next.price)}</p></div>` : ""}
+    ${rec.proNote ? `<p class="pro">${escape(rec.proNote)}</p>` : ""}
+    ${rec.bundle ? `<p class="small">${escape(rec.bundle.line)} ${link(rec.bundle.url, "See the bundle")}</p>` : ""}
+    ${rec.season ? `<p class="small">${escape(rec.season.line)} ${link(rec.season.url, "See the Season")}</p>` : ""}
+  </div>`;
+}
 
 function renderPrompt(p: GeneratedPrompt, i: number): string {
   return `<div class="prompt">
@@ -109,7 +142,7 @@ export default async (req: Request, _context: Context) => {
       "Your prompts are being written",
       `<h1>Still writing${name ? `, ${name}` : ""}.</h1>
        <p class="lede">These take a minute because they aren't a template.
-          This page refreshes itself &mdash; leave it open, or come back to it later.</p>`,
+          This page refreshes itself. Leave it open, or come back to it later.</p>`,
       true,
     );
   }
@@ -134,8 +167,9 @@ export default async (req: Request, _context: Context) => {
        result.summary ||
          "Ten prompts written around your business. Copy one, paste it into Claude, change what you want.",
      )}</p>
+     ${renderRec(job.rec as Recommendation | undefined)}
      ${prompts.map(renderPrompt).join("")}
-     ${CTA}`,
+     ${CTA_DEFAULT}`,
   );
 };
 

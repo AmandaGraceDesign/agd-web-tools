@@ -12,7 +12,7 @@ repo is the one Netlify gets to read.
 
 | Folder | What it is | Status |
 |---|---|---|
-| [`systems-starter-kit/`](./systems-starter-kit) | Ten AI prompts written for the visitor's actual business. Replaces the SYSTEMS lead magnet PDF. Email-gated into Kit. | Built, not yet deployed |
+| [`systems-starter-kit/`](./systems-starter-kit) | Ten AI prompts written for the visitor's actual business, plus a CSL session recommendation from a five-question diagnostic. Replaces the SYSTEMS lead magnet PDF. Email-gated into Kit. | v2 deployed 2026-10-05 (not yet linked from ManyChat) |
 
 ## Adding another tool
 

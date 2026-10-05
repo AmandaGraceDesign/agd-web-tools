@@ -29,6 +29,8 @@ export interface JobRecord {
   created_at: string;
   first_name?: string;
   result?: unknown;
+  /** The CSL session recommendation, worked out at intake (routing.mts). */
+  rec?: unknown;
   error?: string;
   /** Raw failure description; surfaced only while DEBUG_ERRORS is on. */
   detail?: string;

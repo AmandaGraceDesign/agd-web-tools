@@ -1,6 +1,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { jobStore, rateStore, type JobRecord } from "../lib/store.mts";
 import { LIMITS, clientIp, parseIntake } from "../lib/validate.mts";
+import { recommend } from "../lib/routing.mts";
 
 const DEFAULT_IP_LIMIT = 5;
 const DEFAULT_GLOBAL_LIMIT = 400;
@@ -32,7 +33,7 @@ export default async (req: Request, _context: Context) => {
 
   const raw = await req.text();
   if (raw.length > LIMITS.bodyBytes) {
-    return json({ error: "That's more than I need — trim it down a little." }, 413);
+    return json({ error: "That's more than I need. Trim it down a little." }, 413);
   }
 
   let body: unknown;
@@ -73,6 +74,8 @@ export default async (req: Request, _context: Context) => {
     created_at: new Date().toISOString(),
     first_name: intake.firstName,
     intake,
+    // Deterministic from two tap answers, so it is decided here, once.
+    rec: recommend(intake.bottleneck, intake.claude),
   };
   await jobStore().setJSON(jobId, record);
 

@@ -4,6 +4,24 @@ Replaces the SYSTEMS lead magnet PDF ("10 AI Prompts That Actually Work — Crea
 Systems Lab AI Starter Kit"). Instead of a static download, the visitor describes their
 creative business and gets ten Claude prompts written around it. Email gate before results.
 
+
+## v2 (2026-10-05): five-question diagnostic + CSL routing
+
+Approved by Mandy 2026-10-05. The intake is five questions, four of them taps:
+what you make, where you sell, what's eating your week (the routing question),
+where you are with Claude (the gate), and one typed sentence on the 90-day goal.
+
+- `netlify/lib/routing.mts` maps the answers to one CSL session. "Never used it"
+  always goes to free Sessions 1 & 2 first. Below Pro + Session 7 or later shows
+  the Pro note. Live vs replay flips on its own from the session dates. Prices,
+  URLs and dates live in that file only.
+- Kit: the subscriber is created first (v4 will not add an unknown email to a
+  form; v1 had this backwards, so new emails never landed), then added to form
+  9454523, then tagged `CSL Prompt Generator` + one `CSL PG Route - ...` tag.
+  Answers go to custom fields `pg_makes`, `pg_sells`, `pg_bottleneck`,
+  `pg_claude_level`, `pg_goal`, `pg_route`, plus `prompts_url`.
+- Tag and field IDs were created 2026-10-05 and are hard-coded in `kit.mts`.
+
 ## How it runs
 
 ```

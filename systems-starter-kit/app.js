@@ -1,4 +1,4 @@
-/* Systems Starter Kit — front end.
+/* Systems Starter Kit, front end (v2: five-question diagnostic + CSL routing).
  * Three steps: intake -> email gate -> results.
  *
  * Generation runs in a Netlify background function (a synchronous one would
@@ -45,31 +45,48 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // --- Step 1: intake -------------------------------------------------------
 
+function picked(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+
+// "Something else" opens a short text box.
+$("makes").addEventListener("change", () => {
+  const other = picked("makes") === "other";
+  $("makes_other").classList.toggle("hidden", !other);
+  if (other) $("makes_other").focus();
+});
+
 $("intake").addEventListener("submit", (e) => {
   e.preventDefault();
   clearFail("intake-err");
 
-  const business = $("business").value.trim();
-  const timesink = $("timesink").value.trim();
+  const makes = picked("makes");
+  const makes_other = $("makes_other").value.trim();
+  const sells = checkedValues("sells");
+  const bottleneck = picked("bottleneck");
+  const claude = picked("claude");
+  const goal = $("goal").value.trim();
 
-  if (business.length < 15) {
-    return fail(
-      "intake-err",
-      "Give me a sentence or two about what you make and sell — I can't write prompts around three words.",
-    );
+  if (!makes) return fail("intake-err", "Tap what you make (question 1).");
+  if (makes === "other" && makes_other.length < 3) {
+    return fail("intake-err", "Tell me in a few words what you make.");
   }
-  if (timesink.length < 10) {
-    return fail("intake-err", "Tell me what eats your time. That answer shapes half of these prompts.");
+  if (!sells.length) return fail("intake-err", "Tap at least one place you sell (question 2). Not selling yet counts.");
+  if (!bottleneck) return fail("intake-err", "Tap what's eating your week (question 3).");
+  if (!claude) return fail("intake-err", "Tap where you are with Claude (question 4).");
+  if (goal.length < 10) {
+    return fail("intake-err", "Give me one sentence on what you want done in the next 90 days (question 5).");
   }
 
   profile = {
-    business,
-    audience: $("audience").value.trim(),
-    channels: checkedValues("channels"),
-    stage: checkedValues("stage")[0] || "",
-    timesink,
-    next30: $("next30").value.trim(),
-    website: $("website").value, // honeypot — must stay empty
+    makes,
+    makes_other,
+    sells,
+    bottleneck,
+    claude,
+    goal,
+    website: $("website").value, // honeypot, must stay empty
   };
 
   show("email");
@@ -85,7 +102,7 @@ const LOADING_MESSAGES = [
   "Working out where your week actually leaks…",
   "Writing prompts around your bottleneck, not a generic list…",
   "Checking each one would survive contact with a real Tuesday…",
-  "Almost there — this part takes a minute because it isn't a template…",
+  "Almost there. This part takes a minute because it isn't a template…",
 ];
 
 async function startJob(payload) {
@@ -172,6 +189,8 @@ function render(data, firstName) {
   $("results-lede").textContent =
     data.summary || "Ten prompts written around your business. Copy one, paste it into Claude, change what you want.";
 
+  renderRec(data.rec);
+
   const box = $("prompts");
   box.textContent = "";
 
@@ -217,6 +236,80 @@ function render(data, firstName) {
   });
 }
 
+
+// --- Recommendation: where to start in CSL --------------------------------
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text) n.textContent = text;
+  return n;
+}
+
+function a(href, text, cls) {
+  const n = el("a", cls, text);
+  n.href = href;
+  return n;
+}
+
+function renderRec(rec) {
+  const top = $("rec");
+  const bottom = $("rec-bottom");
+  top.textContent = "";
+  bottom.textContent = "";
+  if (!rec || !rec.primary) return;
+
+  const card = el("div", "rec");
+  card.appendChild(el("p", "eyebrow", "Based on what you told me"));
+  card.appendChild(el("h2", "", rec.headline));
+  card.appendChild(el("p", "stitle", `Session ${rec.primary.session}: ${rec.primary.title}`));
+  card.appendChild(el("p", "when", `${rec.primary.when} · ${rec.primary.price}`));
+  card.appendChild(el("p", "why", rec.why));
+  card.appendChild(a(rec.primary.url, `See Session ${rec.primary.session}`, "btn"));
+
+  if (rec.alsoFree) {
+    const p = el("p", "small");
+    p.appendChild(document.createTextNode("Then "));
+    p.appendChild(a(rec.alsoFree.url, `Session ${rec.alsoFree.session}: ${rec.alsoFree.title}`));
+    p.appendChild(document.createTextNode(". Also free."));
+    card.appendChild(p);
+  }
+
+  if (rec.next) {
+    const sub = el("div", "sub");
+    sub.appendChild(el("p", "", rec.next.why));
+    const p = el("p", "small");
+    p.appendChild(a(rec.next.url, `Session ${rec.next.session}: ${rec.next.title}`));
+    p.appendChild(document.createTextNode(` · ${rec.next.when} · ${rec.next.price}`));
+    sub.appendChild(p);
+    card.appendChild(sub);
+  }
+
+  if (rec.proNote) card.appendChild(el("p", "pro", rec.proNote));
+
+  if (rec.bundle) {
+    const p = el("p", "small");
+    p.appendChild(document.createTextNode(`${rec.bundle.line} `));
+    p.appendChild(a(rec.bundle.url, "See the bundle"));
+    card.appendChild(p);
+  }
+  if (rec.season) {
+    const p = el("p", "small");
+    p.appendChild(document.createTextNode(`${rec.season.line} `));
+    p.appendChild(a(rec.season.url, "See the Season"));
+    card.appendChild(p);
+  }
+
+  top.appendChild(card);
+
+  // A short repeat under the prompts, for whoever scrolled all ten.
+  const cta = el("div", "cta");
+  cta.appendChild(el("h2", "", "Want to build the system, not just run the prompt?"));
+  cta.appendChild(el("p", "", "Creative Systems Lab is live 90-minute Claude builds, twice a month. You walk away with something built, not just something learned."));
+  cta.appendChild(a(rec.primary.url, `Start with Session ${rec.primary.session}`));
+  bottom.appendChild(cta);
+}
+
 // --- Copy / download ------------------------------------------------------
 
 async function copy(text, btn, restoreLabel) {
@@ -237,7 +330,7 @@ async function copy(text, btn, restoreLabel) {
 }
 
 function asPlainText() {
-  const lines = ["TEN AI PROMPTS FOR YOUR BUSINESS", "Creative Systems Lab — Amanda Grace Design", ""];
+  const lines = ["TEN AI PROMPTS FOR YOUR BUSINESS", "Creative Systems Lab | Amanda Grace Design", ""];
   if (generated && generated.summary) lines.push(generated.summary, "");
   (generated?.prompts || []).forEach((p, i) => {
     lines.push("=".repeat(60));
@@ -247,7 +340,13 @@ function asPlainText() {
     lines.push("PROMPT:", p.prompt || "", "");
     if (p.tip) lines.push(`TIP: ${p.tip}`, "");
   });
-  lines.push("", "Build the system, not just the prompt: https://creativesystemslab.com");
+  const rec = generated && generated.rec;
+  if (rec && rec.primary) {
+    lines.push("=".repeat(60), "WHERE TO START", "=".repeat(60), "");
+    lines.push(`Session ${rec.primary.session}: ${rec.primary.title}`, rec.why, rec.primary.url, "");
+  } else {
+    lines.push("", "Build the system, not just the prompt: https://creativesystemslab.com");
+  }
   return lines.join("\n");
 }
 

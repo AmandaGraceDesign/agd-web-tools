@@ -3,8 +3,9 @@ import { jobStore, type JobRecord } from "../lib/store.mts";
 import { generate } from "../lib/claude.mts";
 import { subscribe } from "../lib/kit.mts";
 import type { Intake } from "../lib/validate.mts";
+import { recommend, type Recommendation } from "../lib/routing.mts";
 
-type StoredJob = JobRecord & { intake?: Intake };
+type StoredJob = JobRecord & { intake?: Intake; rec?: Recommendation };
 
 /**
  * A compact, quotable description of a failure - error class, HTTP status and
@@ -51,6 +52,7 @@ export default async (req: Request, _context: Context) => {
   }
 
   const intake = job.intake;
+  const rec = job.rec ?? recommend(intake.bottleneck, intake.claude);
 
   // Claim the job so a duplicate delivery cannot generate twice.
   await store.setJSON(jobId, { ...job, status: "running" });
@@ -61,7 +63,7 @@ export default async (req: Request, _context: Context) => {
   const siteUrl = (Netlify.env.get("URL") || "").replace(/\/$/, "");
   const promptsUrl = siteUrl ? `${siteUrl}/r/${jobId}` : undefined;
 
-  const kit = await subscribe(intake, promptsUrl);
+  const kit = await subscribe(intake, rec, promptsUrl);
   if (!kit.ok) {
     console.error("kit subscribe failed", jobId, kit.status ?? "", kit.detail ?? "");
   }
@@ -73,9 +75,10 @@ export default async (req: Request, _context: Context) => {
       created_at: job.created_at,
       first_name: intake.firstName,
       kit_ok: kit.ok,
+      rec,
       result,
     });
-    console.log("generated", jobId, `${result.prompts.length} prompts`, `kit_ok=${kit.ok}`);
+    console.log("generated", jobId, `${result.prompts.length} prompts`, `route=${rec.key}`, `kit_ok=${kit.ok}`);
   } catch (err) {
     console.error("generation failed", jobId, err);
     await store.setJSON(jobId, {
@@ -83,6 +86,7 @@ export default async (req: Request, _context: Context) => {
       created_at: job.created_at,
       first_name: intake.firstName,
       kit_ok: kit.ok,
+      rec,
       error: "The generator didn't finish. Try again in a minute.",
       detail: describe(err),
     });
