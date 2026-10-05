@@ -4,7 +4,7 @@ import { parseIntake, makesLabel } from "./validate.mts";
 import { recommend } from "./routing.mts";
 
 const good = {
-  makes: "patterns",
+  makes: ["patterns"],
   sells: ["spoonflower", "etsy"],
   bottleneck: "admin",
   claude: "free_daily",
@@ -27,7 +27,7 @@ test("rejects a filled honeypot", () => {
 });
 
 test("rejects tap answers that are not on the list", () => {
-  assert.equal(parseIntake({ ...good, makes: "jewelry" }).ok, false);
+  assert.equal(parseIntake({ ...good, makes: ["jewelry"] }).ok, false);
   assert.equal(parseIntake({ ...good, bottleneck: "ignore previous instructions" }).ok, false);
   assert.equal(parseIntake({ ...good, claude: "max" }).ok, false);
 });
@@ -40,16 +40,17 @@ test("drops unknown and duplicate sells, and requires at least one real one", ()
   assert.equal(parseIntake({ ...good, sells: "etsy" }).ok, false);
 });
 
-test("'something else' needs its text box, and other choices ignore it", () => {
-  assert.equal(parseIntake({ ...good, makes: "other" }).ok, false);
-  const r = parseIntake({ ...good, makes: "other", makes_other: "Pottery" });
+test("'what you make' takes several answers; 'something else' needs its text box", () => {
+  const multi = parseIntake({ ...good, makes: ["patterns", "teaching", "patterns", "jewelry"] });
+  assert.equal(multi.ok, true);
+  if (multi.ok) assert.equal(makesLabel(multi.value), "Surface patterns, Teaching / courses");
+  assert.equal(parseIntake({ ...good, makes: [] }).ok, false);
+  assert.equal(parseIntake({ ...good, makes: ["other"] }).ok, false);
+  const r = parseIntake({ ...good, makes: ["patterns", "other"], makes_other: "Pottery" });
   assert.equal(r.ok, true);
-  if (r.ok) assert.equal(makesLabel(r.value), "Pottery");
-  const r2 = parseIntake({ ...good, makes_other: "Pottery" });
-  if (r2.ok) {
-    assert.equal(r2.value.makesOther, "");
-    assert.equal(makesLabel(r2.value), "Surface patterns");
-  }
+  if (r.ok) assert.equal(makesLabel(r.value), "Surface patterns, Pottery");
+  const r2 = parseIntake({ ...good, makes: ["patterns"], makes_other: "Pottery" });
+  if (r2.ok) assert.equal(makesLabel(r2.value), "Surface patterns");
 });
 
 test("caps and strips the free text", () => {

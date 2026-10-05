@@ -117,13 +117,14 @@
     <form id="intake" class="card" novalidate>
       <fieldset class="field">
         <legend><span class="qn">1</span>What do you make?</legend>
+        <p class="hint">Tap all that apply.</p>
         <div class="chips" id="makes">
-          <label class="chip"><input type="radio" name="makes" value="patterns"><span>Surface patterns</span></label>
-          <label class="chip"><input type="radio" name="makes" value="illustration"><span>Illustration / prints</span></label>
-          <label class="chip"><input type="radio" name="makes" value="handmade"><span>Handmade goods</span></label>
-          <label class="chip"><input type="radio" name="makes" value="digital"><span>Digital products</span></label>
-          <label class="chip"><input type="radio" name="makes" value="teaching"><span>Teaching / courses</span></label>
-          <label class="chip"><input type="radio" name="makes" value="other"><span>Something else</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="patterns"><span>Surface patterns</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="illustration"><span>Illustration / prints</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="handmade"><span>Handmade goods</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="digital"><span>Digital products</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="teaching"><span>Teaching / courses</span></label>
+          <label class="chip"><input type="checkbox" name="makes" value="other"><span>Something else</span></label>
         </div>
         <input type="text" id="makes_other" class="hidden" maxlength="80" placeholder="Like: pottery, quilts, stickers" aria-label="What you make">
       </fieldset>

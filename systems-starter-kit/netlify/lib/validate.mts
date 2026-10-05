@@ -1,7 +1,7 @@
 /**
  * Intake v2 (2026-10-05): five questions, four of them taps.
  *
- * Q1 makes        - one choice, plus a short text box when "other"
+ * Q1 makes        - any number of choices, plus a short text box when "other"
  * Q2 sells        - any number of choices
  * Q3 bottleneck   - one choice; this is the routing question
  * Q4 claude       - one choice; this gates the route
@@ -62,7 +62,7 @@ export const LIMITS = {
 };
 
 export interface Profile {
-  makes: MakesKey;
+  makes: MakesKey[];
   makesOther: string;
   sells: SellsKey[];
   bottleneck: BottleneckKey;
@@ -106,12 +106,16 @@ export function parseIntake(raw: unknown): ParseResult {
     return { ok: false, error: "Malformed request." };
   }
 
-  const makes = oneOf(MAKES, body.makes);
-  if (!makes) return { ok: false, error: "Tap what you make." };
+  // Accept a single string too, so a cached v2.0 page still works.
+  const rawMakes = Array.isArray(body.makes) ? body.makes : [body.makes];
+  const makes = Array.from(
+    new Set(rawMakes.map((m) => oneOf(MAKES, m)).filter((m): m is MakesKey => m !== null)),
+  );
+  if (!makes.length) return { ok: false, error: "Tap what you make." };
 
   const makesOther = clean(body.makes_other, LIMITS.makesOther);
-  if (makes === "other" && makesOther.length < 3) {
-    return { ok: false, error: "Tell me in a few words what you make." };
+  if (makes.includes("other") && makesOther.length < 3) {
+    return { ok: false, error: "Tell me in a few words what else you make." };
   }
 
   const sells = Array.isArray(body.sells)
@@ -145,7 +149,7 @@ export function parseIntake(raw: unknown): ParseResult {
     ok: true,
     value: {
       makes,
-      makesOther: makes === "other" ? makesOther : "",
+      makesOther: makes.includes("other") ? makesOther : "",
       sells,
       bottleneck,
       claude,
@@ -158,7 +162,10 @@ export function parseIntake(raw: unknown): ParseResult {
 
 /** Human-readable "what they make", for the model and for Kit. */
 export function makesLabel(intake: Pick<Intake, "makes" | "makesOther">): string {
-  return intake.makes === "other" ? intake.makesOther : MAKES[intake.makes];
+  return intake.makes
+    .map((m) => (m === "other" ? intake.makesOther : MAKES[m]))
+    .filter(Boolean)
+    .join(", ");
 }
 
 /** The client IP, for rate limiting. Netlify sets x-nf-client-connection-ip. */

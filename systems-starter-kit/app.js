@@ -52,7 +52,7 @@ function picked(name) {
 
 // "Something else" opens a short text box.
 $("makes").addEventListener("change", () => {
-  const other = picked("makes") === "other";
+  const other = checkedValues("makes").includes("other");
   $("makes_other").classList.toggle("hidden", !other);
   if (other) $("makes_other").focus();
 });
@@ -61,16 +61,16 @@ $("intake").addEventListener("submit", (e) => {
   e.preventDefault();
   clearFail("intake-err");
 
-  const makes = picked("makes");
+  const makes = checkedValues("makes");
   const makes_other = $("makes_other").value.trim();
   const sells = checkedValues("sells");
   const bottleneck = picked("bottleneck");
   const claude = picked("claude");
   const goal = $("goal").value.trim();
 
-  if (!makes) return fail("intake-err", "Tap what you make (question 1).");
-  if (makes === "other" && makes_other.length < 3) {
-    return fail("intake-err", "Tell me in a few words what you make.");
+  if (!makes.length) return fail("intake-err", "Tap what you make (question 1).");
+  if (makes.includes("other") && makes_other.length < 3) {
+    return fail("intake-err", "Tell me in a few words what else you make.");
   }
   if (!sells.length) return fail("intake-err", "Tap at least one place you sell (question 2). Not selling yet counts.");
   if (!bottleneck) return fail("intake-err", "Tap what's eating your week (question 3).");
