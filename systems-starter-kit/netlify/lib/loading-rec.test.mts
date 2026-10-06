@@ -18,7 +18,8 @@ test("the loading screen has a slot for the recommendation", () => {
 
 test("links on the loading card open in a new tab, so a click can't kill the generation", () => {
   const js = read("../../app.js");
-  assert.match(js, /\$\("rec-loading"\)\.appendChild\(recCard\(started\.rec, \{ newTab: true \}\)\)/);
+  assert.match(js, /recCard\(started\.rec, \{ newTab: true \}\)/);
+  assert.match(js, /\$\("rec-loading"\)\.appendChild\(waitCard\)/);
   assert.match(js, /n\.target = "_blank";\s*n\.rel = "noopener";/);
 });
 
@@ -53,4 +54,18 @@ test("the pattern strip points at a file that ships with the site", () => {
   const m = html.match(/url\((img\/[^)]+)\)/);
   assert.ok(m, "pattern strip background is set");
   assert.ok(readFileSync(new URL(`../../${m![1]}`, import.meta.url)).length > 10_000);
+});
+
+import { META_PIXEL_ID, META_PIXEL_HEAD } from "./pixel.mts";
+
+test("the Meta pixel is on the tool page and the saved-results page, same ID", () => {
+  const html = read("../../index.html");
+  assert.ok(html.includes(`fbq('init','${META_PIXEL_ID}')`));
+  assert.ok(html.includes("fbq('track','PageView')"));
+  assert.ok(META_PIXEL_HEAD.includes(META_PIXEL_ID));
+  assert.match(read("../functions/results-page.mts"), /META_PIXEL_HEAD/);
+});
+
+test("the email step fires a standard Lead event, deduplicable by job id", () => {
+  assert.match(read("../../app.js"), /track\("Lead", \{[^}]*\}, \{ standard: true, eventID: started\.job_id \}\)/);
 });

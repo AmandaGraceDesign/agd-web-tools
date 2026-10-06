@@ -1,3 +1,4 @@
+import { META_PIXEL_HEAD } from "../lib/pixel.mts";
 import type { Config, Context } from "@netlify/functions";
 import { jobStore, type JobRecord } from "../lib/store.mts";
 import type { Generated, GeneratedPrompt } from "../lib/claude.mts";
@@ -58,13 +59,20 @@ const STYLES = `
   @media (max-width:520px){.prompt,.cta{padding:18px}body{font-size:16px}}
 `;
 
+// Saved-results page: PageView plus a click event for the session links.
+// Skipped while the page auto-refreshes, so PageView isn't counted every 8s.
+const SAVED_PAGE_CLICKS = `<script>
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".rec a,.cta a");
+if(a&&window.fbq)fbq("trackCustom","PG_SessionClick",{link_text:a.textContent,link_url:a.href,where:"saved_page"});});
+</script>`;
+
 function page(title: string, body: string, refresh = false): Response {
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>${escape(title)}</title>${refresh ? '<meta http-equiv="refresh" content="8">' : ""}
-<style>${STYLES}${REC_STYLES}</style></head><body>
+<style>${STYLES}${REC_STYLES}</style>${refresh ? "" : META_PIXEL_HEAD + SAVED_PAGE_CLICKS}</head><body>
 <header><div class="wrap"><span class="dot"></span><span>Creative Systems Lab</span></div></header>
 <main class="wrap">${body}</main>
 <footer class="wrap"><p>Built by <a href="https://amandagracedesign.com">Amanda Grace Design</a></p></footer>

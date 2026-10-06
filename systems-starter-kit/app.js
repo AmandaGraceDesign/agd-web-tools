@@ -43,6 +43,25 @@ function checkedValues(containerId) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Meta pixel events for ad tracking. Never sends answers, names or emails.
+// Standard events: PageView (in index.html) and Lead. Everything else is a
+// custom "PG_" event so it is easy to find in Events Manager.
+function track(name, params = {}, opts = {}) {
+  try {
+    if (typeof window.fbq !== "function") return;
+    if (opts.standard) window.fbq("track", name, params, opts.eventID ? { eventID: opts.eventID } : undefined);
+    else window.fbq("trackCustom", name, params);
+  } catch { /* tracking must never break the page */ }
+}
+
+// Every link inside a recommendation card reports which session it was for.
+function trackCardClicks(card, where) {
+  card.addEventListener("click", (e) => {
+    const link = e.target.closest("a");
+    if (link) track("PG_SessionClick", { link_text: link.textContent, link_url: link.href, where });
+  });
+}
+
 // --- Step 1: intake -------------------------------------------------------
 
 function picked(name) {
@@ -93,6 +112,7 @@ $("intake").addEventListener("submit", (e) => {
     website: $("website").value, // honeypot, must stay empty
   };
 
+  track("PG_QuestionsDone", { claude_level: claude, bottleneck });
   show("email");
   $("first_name").focus();
 });
@@ -209,10 +229,15 @@ $("gate").addEventListener("submit", async (e) => {
 
   try {
     const started = await startJob({ ...profile, first_name, email });
+    // The conversion to optimize ads for: they gave their email. eventID is
+    // the job id, ready for deduping against a server-side event later.
+    track("Lead", { content_name: "CSL Prompt Generator", route: started.rec?.key }, { standard: true, eventID: started.job_id });
     // The recommendation is decided at intake, so show it while the prompts
     // are still being written instead of making them stare at a spinner.
     if (started.rec && started.rec.primary) {
-      $("rec-loading").appendChild(recCard(started.rec, { newTab: true }));
+      const waitCard = recCard(started.rec, { newTab: true });
+      trackCardClicks(waitCard, "loading");
+      $("rec-loading").appendChild(waitCard);
       $("rec-wait").classList.remove("hidden");
     }
     const data = await pollJob(started.job_id);
@@ -221,6 +246,7 @@ $("gate").addEventListener("submit", async (e) => {
     generated = data;
     render(data, first_name);
     show("results");
+    track("PG_PromptsDelivered", { route: started.rec?.key });
   } catch (err) {
     show("email");
     fail("gate-err", err.message || "Something broke on my end. Try again in a minute.");
@@ -271,7 +297,10 @@ function render(data, firstName) {
     btn.type = "button";
     btn.className = "ghost";
     btn.textContent = "Copy this prompt";
-    btn.addEventListener("click", () => copy(p.prompt || "", btn, "Copy this prompt"));
+    btn.addEventListener("click", () => {
+      track("PG_CopyPrompt", { prompt_number: idx + 1 });
+      copy(p.prompt || "", btn, "Copy this prompt");
+    });
     card.appendChild(btn);
 
     if (p.tip) {
@@ -360,13 +389,16 @@ function renderRec(rec) {
   bottom.textContent = "";
   if (!rec || !rec.primary) return;
 
-  top.appendChild(recCard(rec));
+  const card = recCard(rec);
+  trackCardClicks(card, "results");
+  top.appendChild(card);
 
   // A short repeat under the prompts, for whoever scrolled all ten.
   const cta = el("div", "cta");
   cta.appendChild(el("h2", "", "Want to build the system, not just run the prompt?"));
   cta.appendChild(el("p", "", "Creative Systems Lab is live 90-minute Claude builds, twice a month. You walk away with something built, not just something learned."));
   cta.appendChild(a(rec.primary.url, rec.primary.cta || `Start with Session ${rec.primary.session}`));
+  trackCardClicks(cta, "results_bottom");
   bottom.appendChild(cta);
 }
 
@@ -410,9 +442,13 @@ function asPlainText() {
   return lines.join("\n");
 }
 
-$("copy-all").addEventListener("click", (e) => copy(asPlainText(), e.currentTarget, "Copy all ten"));
+$("copy-all").addEventListener("click", (e) => {
+  track("PG_CopyAll");
+  copy(asPlainText(), e.currentTarget, "Copy all ten");
+});
 
 $("download").addEventListener("click", () => {
+  track("PG_Download");
   const blob = new Blob([asPlainText()], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
