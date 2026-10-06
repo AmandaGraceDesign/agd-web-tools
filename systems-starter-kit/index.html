@@ -31,6 +31,10 @@
   .clarify{background:#fff;border-left:4px solid var(--gold);padding:14px 16px;border-radius:0 10px 10px 0;font-size:15.5px;margin:0 0 26px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin:0 0 22px}
   label{display:block;font-weight:600;margin:0 0 4px;font-size:15.5px}
+  /* Mandy's "Wildflowers" pattern. The file is one half-drop block (two columns,
+     the second dropped half a tile), so it repeats as a plain grid. */
+  .pattern-strip{height:150px;background:url(img/wildflowers-halfdrop.jpg) 0 -40px/800px 400px repeat;border-bottom:3px solid var(--gold)}
+  @media (max-width:600px){.pattern-strip{height:110px;background-size:560px 280px;background-position:0 -30px}}
   .hint{color:#4d5e6e;font-size:15px;margin:0 0 8px}
   ::placeholder{color:#6a7785;opacity:1}
   .opt-tag{color:#4d5e6e;font-weight:400;font-size:15px}
@@ -121,6 +125,7 @@
 <body>
 
 <header><div class="wrap"><span class="dot"></span><span>Creative Systems Lab</span></div></header>
+<div class="pattern-strip" role="img" aria-label="Wildflowers, a surface pattern by Amanda Grace Design"></div>
 
 <main class="wrap">
 

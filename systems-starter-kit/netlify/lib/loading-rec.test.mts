@@ -47,3 +47,10 @@ test("emailed prompts links use the branded domain in production only", () => {
   assert.equal(promptsBaseUrl("deploy-preview", "https://deploy-preview-3--agd-web-tools.netlify.app/"), "https://deploy-preview-3--agd-web-tools.netlify.app");
   assert.equal(promptsBaseUrl(undefined, undefined), "");
 });
+
+test("the pattern strip points at a file that ships with the site", () => {
+  const html = read("../../index.html");
+  const m = html.match(/url\((img\/[^)]+)\)/);
+  assert.ok(m, "pattern strip background is set");
+  assert.ok(readFileSync(new URL(`../../${m![1]}`, import.meta.url)).length > 10_000);
+});
