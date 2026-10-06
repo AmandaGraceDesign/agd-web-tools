@@ -39,3 +39,11 @@ test("the tenth tile only lands when the prompts arrive", () => {
   const done = js.indexOf("const data = await pollJob(started.job_id);");
   assert.ok(done > -1 && js.indexOf("finishTiles();", done) > done);
 });
+
+import { promptsBaseUrl } from "./urls.mts";
+
+test("emailed prompts links use the branded domain in production only", () => {
+  assert.equal(promptsBaseUrl("production", "https://agd-web-tools.netlify.app"), "https://prompts.creativesystemslab.com");
+  assert.equal(promptsBaseUrl("deploy-preview", "https://deploy-preview-3--agd-web-tools.netlify.app/"), "https://deploy-preview-3--agd-web-tools.netlify.app");
+  assert.equal(promptsBaseUrl(undefined, undefined), "");
+});

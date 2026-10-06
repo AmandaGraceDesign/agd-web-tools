@@ -28,6 +28,13 @@ where you are with Claude (the gate), and one typed sentence on the 90-day goal.
   model so the prompts use the name and write for that buyer.
 - Tag and field IDs were created 2026-10-05 and are hard-coded in `kit.mts`.
 
+## Domain
+
+Live at **https://prompts.creativesystemslab.com** (custom domain on the agd-web-tools
+Netlify site, CNAME `prompts` -> `agd-web-tools.netlify.app`). The prompts link saved to
+Kit (`prompts_url`) always uses this domain in production; see `netlify/lib/urls.mts`.
+Old `agd-web-tools.netlify.app` links keep working.
+
 ## How it runs
 
 ```
@@ -70,7 +77,7 @@ replayed or invented id does no work and spends no API credits.
 3. **Deploy**, then run one real generation end to end. Check the email landed in Kit.
 
 4. **Point ManyChat at it.** In the `CSL - AI 10 Prompts Starter Kit Funnel` automation,
-   replace the Google Drive PDF link with the new URL. Nothing else in the flow changes —
+   replace the Google Drive PDF link with https://prompts.creativesystemslab.com. Nothing else in the flow changes —
    the SYSTEMS trigger, the follower gate, and the comment reply all stay as they are.
 
 ## The Kit form

@@ -4,6 +4,7 @@ import { generate } from "../lib/claude.mts";
 import { subscribe } from "../lib/kit.mts";
 import type { Intake } from "../lib/validate.mts";
 import { recommend, type Recommendation } from "../lib/routing.mts";
+import { promptsBaseUrl } from "../lib/urls.mts";
 
 type StoredJob = JobRecord & { intake?: Intake; rec?: Recommendation };
 
@@ -59,8 +60,9 @@ export default async (req: Request, _context: Context) => {
 
   // The email is the price of the tool, so capture it before generating - but
   // never let a Kit failure cost the visitor the prompts they filled a form for.
-  // Netlify sets URL to the production site address.
-  const siteUrl = (Netlify.env.get("URL") || "").replace(/\/$/, "");
+  // @ts-expect-error - the Netlify global's context is injected at runtime.
+  const deployContext: string | undefined = globalThis.Netlify?.context?.deploy?.context;
+  const siteUrl = promptsBaseUrl(deployContext, Netlify.env.get("URL"));
   const promptsUrl = siteUrl ? `${siteUrl}/r/${jobId}` : undefined;
 
   const kit = await subscribe(intake, rec, promptsUrl);
