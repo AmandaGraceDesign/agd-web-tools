@@ -12,6 +12,8 @@
 <style>
   :root{
     --gold:#eeac55; --navy:#204568; --blush:#f7ede6; --coral:#e85c66;
+    /* Deeper coral for anything with white text on it: 4.97:1 contrast (coral is 3.4:1). */
+    --cta:#c93c48; --cta-hover:#a92b37;
     --ink:#1b2c3d; --muted:#5c6f80; --line:#e3d6cc; --card:#fffdfb;
     --radius:14px;
     --sans:"Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -29,8 +31,9 @@
   .clarify{background:#fff;border-left:4px solid var(--gold);padding:14px 16px;border-radius:0 10px 10px 0;font-size:15.5px;margin:0 0 26px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin:0 0 22px}
   label{display:block;font-weight:600;margin:0 0 4px;font-size:15.5px}
-  .hint{color:var(--muted);font-size:14px;margin:0 0 8px}
-  .opt-tag{color:var(--muted);font-weight:400;font-size:14px}
+  .hint{color:#4d5e6e;font-size:15px;margin:0 0 8px}
+  ::placeholder{color:#6a7785;opacity:1}
+  .opt-tag{color:#4d5e6e;font-weight:400;font-size:15px}
   input[type=text],input[type=email],textarea{
     width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
     font:inherit;font-size:16px;background:#fff;color:var(--ink)}
@@ -45,8 +48,9 @@
   .chip input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
   button{
     font:inherit;font-weight:700;font-size:17px;border:0;border-radius:999px;
-    padding:14px 30px;cursor:pointer;background:var(--coral);color:#fff}
-  button:hover:not(:disabled){filter:brightness(1.06)}
+    padding:14px 30px;cursor:pointer;background:var(--cta);color:#fff}
+  button:hover:not(:disabled){background:var(--cta-hover)}
+  button.ghost:hover:not(:disabled){background:#fff}
   button:disabled{opacity:.55;cursor:not-allowed}
   button.ghost{background:transparent;color:var(--navy);border:1px solid var(--line);font-weight:600;font-size:15px;padding:9px 18px}
   .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -105,7 +109,8 @@
   .rec .stitle{font-weight:700;margin:0 0 4px}
   .rec .when{font-size:14.5px;color:var(--muted);margin:0 0 14px}
   .rec .why{margin:0 0 16px}
-  .rec a.btn{display:inline-block;background:var(--coral);color:#fff;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:999px;min-height:44px}
+  .rec a.btn:hover{background:var(--cta-hover)}
+  .rec a.btn{display:inline-block;background:var(--cta);color:#fff;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:999px;min-height:44px}
   .rec .sub{border-top:1px solid var(--line);margin:18px 0 0;padding:16px 0 0;font-size:15.5px}
   .rec .sub a{color:var(--navy);font-weight:700}
   .rec .pro{background:var(--blush);border-radius:10px;padding:12px 14px;font-size:15px;margin:14px 0 0}
@@ -123,7 +128,7 @@
   <section id="step-intake">
     <div class="hero">
       <h1>Ten AI prompts, written for your creative business.</h1>
-      <p class="lede">Not a PDF of generic prompts you'll skim once and forget. Six quick questions, about a minute, and I'll write ten Claude prompts around <em>your</em> business. Plus I'll tell you where to start.</p>
+      <p class="lede">Not a PDF of generic prompts you'll skim once and forget. Six quick questions, about two minutes, and I'll write ten Claude prompts around <em>your</em> business. Plus I'll tell you where to start.</p>
       <div class="clarify"><strong>To be clear:</strong> this is not about generating art with AI. This is about using AI to run the business around your art.</div>
     </div>
 
@@ -182,6 +187,7 @@
 
       <fieldset class="field">
         <legend><span class="qn">5</span>Where are you with Claude?</legend>
+        <p class="hint">Pick one.</p>
         <div class="chips" id="claude">
           <label class="chip"><input type="radio" name="claude" value="never"><span>Never used it</span></label>
           <label class="chip"><input type="radio" name="claude" value="free_sometimes"><span>Free plan, now and then</span></label>

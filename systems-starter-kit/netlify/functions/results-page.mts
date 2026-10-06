@@ -86,7 +86,8 @@ const REC_STYLES = `
   .rec h2{font-size:23px;margin:0 0 8px}
   .rec .stitle{font-weight:700;margin:0 0 4px}
   .rec .when{font-size:14.5px;color:var(--muted);margin:0 0 14px}
-  .rec a.btn{display:inline-block;background:var(--coral);color:#fff;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:999px}
+  .rec a.btn:hover{background:#a92b37}
+  .rec a.btn{display:inline-block;background:#c93c48;color:#fff;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:999px}
   .rec .sub{border-top:1px solid var(--line);margin:18px 0 0;padding:16px 0 0;font-size:15.5px}
   .rec .pro{background:var(--blush);border-radius:10px;padding:12px 14px;font-size:15px;margin:14px 0 0}
   .rec .small{font-size:15px;color:var(--muted);margin:14px 0 0}
