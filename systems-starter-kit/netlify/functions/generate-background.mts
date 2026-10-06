@@ -5,8 +5,9 @@ import { subscribe } from "../lib/kit.mts";
 import type { Intake } from "../lib/validate.mts";
 import { recommend, type Recommendation } from "../lib/routing.mts";
 import { promptsBaseUrl } from "../lib/urls.mts";
+import { sendLead, type LeadContext } from "../lib/meta.mts";
 
-type StoredJob = JobRecord & { intake?: Intake; rec?: Recommendation };
+type StoredJob = JobRecord & { intake?: Intake; rec?: Recommendation; meta?: LeadContext };
 
 /**
  * A compact, quotable description of a failure - error class, HTTP status and
@@ -65,7 +66,14 @@ export default async (req: Request, _context: Context) => {
   const siteUrl = promptsBaseUrl(deployContext, Netlify.env.get("URL"));
   const promptsUrl = siteUrl ? `${siteUrl}/r/${jobId}` : undefined;
 
-  const kit = await subscribe(intake, rec, promptsUrl);
+  // Kit and the server-side Lead event run side by side; neither can fail the job.
+  const [kit, capi] = await Promise.all([
+    subscribe(intake, rec, promptsUrl),
+    job.meta
+      ? sendLead(jobId, { email: intake.email, firstName: intake.firstName, route: rec.key }, job.meta)
+      : Promise.resolve({ ok: false, skipped: true, detail: "no request context on job" }),
+  ]);
+  if (!capi.ok && !capi.skipped) console.error("meta capi failed", jobId, capi.detail ?? "");
   if (!kit.ok) {
     console.error("kit subscribe failed", jobId, kit.status ?? "", kit.detail ?? "");
   }
@@ -77,10 +85,11 @@ export default async (req: Request, _context: Context) => {
       created_at: job.created_at,
       first_name: intake.firstName,
       kit_ok: kit.ok,
+      capi_ok: capi.ok,
       rec,
       result,
     });
-    console.log("generated", jobId, `${result.prompts.length} prompts`, `route=${rec.key}`, `kit_ok=${kit.ok}`);
+    console.log("generated", jobId, `${result.prompts.length} prompts`, `route=${rec.key}`, `kit_ok=${kit.ok}`, `capi=${capi.ok ? "ok" : capi.skipped ? "skipped" : "failed"}`);
   } catch (err) {
     console.error("generation failed", jobId, err);
     await store.setJSON(jobId, {

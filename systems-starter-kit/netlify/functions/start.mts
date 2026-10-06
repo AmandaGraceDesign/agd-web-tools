@@ -2,6 +2,7 @@ import type { Config, Context } from "@netlify/functions";
 import { jobStore, rateStore, type JobRecord } from "../lib/store.mts";
 import { LIMITS, clientIp, parseIntake } from "../lib/validate.mts";
 import { recommend } from "../lib/routing.mts";
+import { metaCookies, type LeadContext } from "../lib/meta.mts";
 
 const DEFAULT_IP_LIMIT = 5;
 const DEFAULT_GLOBAL_LIMIT = 400;
@@ -72,11 +73,21 @@ export default async (req: Request, _context: Context) => {
   // Deterministic from two tap answers, so it is decided here, once, and
   // sent straight back so the page can show it while the prompts generate.
   const rec = recommend(intake.bottleneck, intake.claude);
-  const record: JobRecord & { intake: typeof intake } = {
+  // For the server-side Lead event (meta.mts). Lives only as long as the
+  // pending job; the finished record overwrites it.
+  const meta: LeadContext = {
+    time: Math.floor(Date.now() / 1000),
+    ip: clientIp(req),
+    userAgent: req.headers.get("user-agent") || "",
+    url: req.headers.get("referer") || new URL("/", req.url).toString(),
+    ...metaCookies(req.headers.get("cookie")),
+  };
+  const record: JobRecord & { intake: typeof intake; meta: LeadContext } = {
     status: "pending",
     created_at: new Date().toISOString(),
     first_name: intake.firstName,
     intake,
+    meta,
     rec,
   };
   await jobStore().setJSON(jobId, record);

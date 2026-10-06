@@ -35,6 +35,18 @@ Netlify site, CNAME `prompts` -> `agd-web-tools.netlify.app`). The prompts link 
 Kit (`prompts_url`) always uses this domain in production; see `netlify/lib/urls.mts`.
 Old `agd-web-tools.netlify.app` links keep working.
 
+## Meta pixel + Conversions API
+
+Pixel **AGD_New-Kajabi_Site_2025** (`1796200234246406`, same as the Kajabi site) fires
+from the browser: `PageView`, `PG_QuestionsDone`, `Lead`, `PG_PromptsDelivered`,
+`PG_SessionClick`, `PG_CopyPrompt`, `PG_CopyAll`, `PG_Download`. No answers, names or
+emails go through the browser pixel.
+
+`Lead` is also sent server-side from the background function (`netlify/lib/meta.mts`)
+with SHA-256 hashed email and first name, IP, user agent and the `_fbp` / `_fbc`
+cookies, so ad blockers and iOS settings can't hide it. Both copies use the job id as
+the event ID, so Meta counts one Lead.
+
 ## How it runs
 
 ```
@@ -73,6 +85,9 @@ replayed or invented id does no work and spends no API credits.
    | `CLAUDE_EFFORT` | `medium` | Optional — `low` / `medium` / `high`. |
    | `DAILY_IP_LIMIT` | `5` | Optional — generations per visitor per day. |
    | `DAILY_GLOBAL_LIMIT` | `400` | Optional — ceiling on the daily API bill. |
+   | `META_CAPI_TOKEN` | Conversions API token | Events Manager → AGD_New-Kajabi_Site_2025 → Settings → Conversions API → Generate access token. Mark it secret. Without it the server-side Lead is skipped (the browser pixel still works). |
+   | `META_TEST_EVENT_CODE` | e.g. `TEST12345` | Optional — only while checking events in Events Manager → Test events. Remove after. |
+   | `META_GRAPH_VERSION` | `v23.0` | Optional — the default. |
 
 3. **Deploy**, then run one real generation end to end. Check the email landed in Kit.
 
